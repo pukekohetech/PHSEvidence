@@ -211,10 +211,14 @@
 
     if (EMAIL_CONFIG.provider === 'apps-script') {
       const status = await waitForMailGatewayStatus(endpoint, submissionId);
-      return { submitted: true, confirmed: status.confirmed };
+      return {
+        submitted: true,
+        confirmed: status.confirmed,
+        gatewayStatus: status.result || null
+      };
     }
 
-    return { submitted: true, confirmed: true };
+    return { submitted: true, confirmed: true, gatewayStatus: null };
   }
 
   // Extend the existing sender without changing the student-facing app.
@@ -537,9 +541,20 @@
       if (sendResult?.submitted) {
         lastDirectSendKey = sendKey;
         if (sendResult.confirmed) {
-          if (emailStatusEl) emailStatusEl.textContent = '✓ Evidence sent and confirmed.';
-          showSendCurtain('success', 'Evidence sent', 'Backed up successfully');
-          setTimeout(showSaveCopyPrompt, 420);
+          const gateway = sendResult.gatewayStatus || {};
+          const driveFailed = gateway.driveExpected === true && gateway.driveSaved === false;
+          if (driveFailed) {
+            if (emailStatusEl) emailStatusEl.textContent = `✓ Evidence sent. Google Drive backup failed${gateway.driveError ? `: ${gateway.driveError}` : '.'}`;
+            showSendCurtain('success', 'Evidence sent', 'Google Drive copy needs attention');
+            if (typeof showToast === 'function') showToast('Evidence sent, but the Google Drive copy failed.', false, 5200);
+            setTimeout(showSaveCopyPrompt, 900);
+          } else {
+            if (emailStatusEl) emailStatusEl.textContent = gateway.driveSaved === true
+              ? `✓ Evidence sent and saved to Drive${gateway.drivePath ? ` • ${gateway.drivePath}` : ''}`
+              : '✓ Evidence sent and confirmed.';
+            showSendCurtain('success', 'Evidence sent', gateway.driveSaved === true ? 'Saved to Google Drive' : 'Backed up successfully');
+            setTimeout(showSaveCopyPrompt, 420);
+          }
         } else {
           if (emailStatusEl) emailStatusEl.textContent = 'Evidence submitted.';
           showSendCurtain('success', 'Evidence submitted', 'Returning to camera');

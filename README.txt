@@ -1,135 +1,63 @@
-PHS EVIDENCE CAMERA - FULL GOOGLE DRIVE UPDATE v9
-=================================================
+PHS EVIDENCE CAMERA - GOOGLE DRIVE v10
+======================================
 
-This package combines the current Save-a-Copy + machine-routing PWA update with the complete
-Google Apps Script gateway needed to file evidence automatically in Google Drive.
+This update fixes the Drive backup setup so a folder ID is no longer required.
 
-FILES IN THIS PACKAGE
----------------------
-1. pwa.js
-   - Save-a-copy prompt after successful send.
-   - Machine-readable routing fields.
-   - Routing preserved for offline queued photos.
+WHAT CHANGED
+------------
+1. Google Drive backup remains ON.
+2. If DRIVE_FOLDER_ID is blank, Apps Script automatically finds or creates:
+      PHS Technology Evidence
+   at the top of the My Drive belonging to the Google account running the web app.
+3. Evidence is filed automatically as:
+      PHS Technology Evidence / YEAR / CLASS / STUDENT / photos
+4. Project/task stays in the filename; there is NO project folder.
+5. If Drive saving fails, the PWA now reports that separately instead of making the whole operation look successful.
+6. Existing selected-teacher email + Teams-channel BCC behaviour is retained.
 
-2. service-worker.js
-   - Isolated PHSEvidence cache.
-   - v8 routing/save-copy cache version.
-
-3. Code.gs
-   - Complete replacement Google Apps Script gateway.
-   - Sends to selected teacher.
-   - BCCs PHS Technology Evidence Teams channel.
-   - Saves to Google Drive using Year > Class > Student.
-   - Project/task appears in filename, NOT as a folder.
-
-4. README-PWA-v8.txt
-   - Notes from the routing/save-copy PWA update.
-
-GOOGLE DRIVE STRUCTURE
-----------------------
-The Apps Script creates folders automatically:
-
-PHS Technology Evidence
-  / 2026
-    / 9TTEC-RY
-      / Joe Smith
-        / PHS_Joe_Smith_Photo_Frame_2026-09-24_111705.jpg
-        / PHS_Joe_Smith_Folding_Stool_2026-10-02_094422.jpg
-
-There is deliberately no project folder.
-
-ONE VALUE YOU MUST SET
-----------------------
-In Code.gs, find:
-
-    DRIVE_FOLDER_ID: '',
-
-Create or choose the top-level Google Drive folder you want to use, for example:
-
-    PHS Technology Evidence
-
-Open that folder in Google Drive. If its URL is:
-
-    https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOp
-
-set:
-
-    DRIVE_FOLDER_ID: '1AbCdEfGhIjKlMnOp',
-
-The Google account that owns/runs the Apps Script must have Editor access to that folder.
-
-DEPLOY - GOOGLE APPS SCRIPT
----------------------------
-1. Open the existing PHS Evidence Apps Script project.
-2. Replace the entire current Code.gs with the supplied Code.gs.
-3. Paste in DRIVE_FOLDER_ID.
-4. Save.
-5. Google may request Drive permission the first time this version runs. Approve the Drive access.
-6. Deploy > Manage deployments.
-7. Edit the existing web-app deployment.
-8. Choose New version.
-9. Deploy.
-
-Updating the existing deployment should keep the same /exec URL.
-
-DEPLOY - PHSEVIDENCE GITHUB APP
--------------------------------
-If you have already installed the v8 Save Copy + Routing files, you do NOT need to upload them again.
-
-If not, replace these two files in the root of the PHSEvidence GitHub repository:
-
-    pwa.js
-    service-worker.js
-
-No index.html change is required.
-
-CURRENT EMAIL BEHAVIOUR
------------------------
-SEND_MODE remains:
-
-    selected_teacher
-
-So the teacher chosen by the user still receives the image.
-
-A BCC copy is also sent to the Technology Evidence Teams channel:
-
-    b656a75a.pukekohehigh.school.nz@apac.teams.ms
-
-GOOGLE DRIVE ROUTING
---------------------
-The PHSEvidence app supplies values such as:
-
-    schoolYear=2026
-    teacherId=ry
-    subjectId=9ttec
-    projectId=9ttec_photo_frame
-    classKey=9TTEC-RY
-    studentFolder=Joe Smith
-    projectLabel=Photo Frame
-
-The Apps Script uses:
-
-    schoolYear / classKey / studentFolder
-
-to create the Drive path.
-
-Project/task is used in the filename instead of creating another folder.
-
-FIRST TEST
-----------
-Take one test photo using a test student name and real teacher/subject/project selections.
-
-Confirm:
-1. Selected teacher receives the evidence.
-2. Technology Evidence Teams channel receives the BCC copy.
-3. Google Drive automatically creates:
-      Year > Class > Student
-4. The image appears in the student folder.
-5. The project name is in the filename.
-6. No project folder is created.
-
-FAIL-SAFE BEHAVIOUR
+RECOMMENDED INSTALL
 -------------------
-Email delivery and Drive filing are deliberately separated.
-If Drive filing fails, the email can still be delivered.
-The gateway status reports driveSaved=false and a short driveError message for troubleshooting.
+A. Apps Script
+1. Open the existing PHS Evidence Apps Script project.
+2. Replace Code.gs with the Code.gs in this package.
+3. Save.
+4. In the function selector, choose setupDrive and click Run ONCE.
+5. Approve Google Drive permission if Google asks.
+6. setupDrive should return/log the root folder name, ID and URL.
+7. Deploy > Manage deployments > Edit > New version > Deploy.
+   Keep the same existing web-app deployment so the /exec URL remains unchanged.
+
+B. PHSEvidence GitHub repo
+Replace:
+- pwa.js
+- service-worker.js
+
+No index.html changes are required.
+
+DRIVE ROOT OPTIONS
+------------------
+Default (recommended): leave this blank:
+  DRIVE_FOLDER_ID: ''
+
+The script will automatically create/use:
+  PHS Technology Evidence
+
+If you want a specific existing folder instead, paste its folder ID into DRIVE_FOLDER_ID.
+The Apps Script account must have Editor access to that folder.
+
+VERIFY
+------
+1. After deployment, open the existing Apps Script /exec URL directly in a browser.
+2. Healthy Drive setup should include:
+     driveBackupEnabled: true
+     driveReady: true
+     driveRootMode: "auto-root" (or "folder-id")
+     driveRootFolderName: "PHS Technology Evidence"
+3. Send one test photo.
+4. Check Google Drive for:
+     PHS Technology Evidence / <year> / <class> / <student> / <photo>.jpg
+
+IMPORTANT
+---------
+The automatically created folder belongs to the Google account under which the Apps Script web app executes.
+If you use a separate Gmail account for the mail gateway, look in THAT account's My Drive.

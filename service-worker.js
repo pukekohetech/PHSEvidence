@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phs-evidence-camera-v8-routing-save-copy';
+const CACHE_VERSION = 'phs-evidence-camera-v10-drive-auto-root';
 const CACHE_PREFIX = 'phs-evidence-camera-';
 const APP_SHELL = [
   './',
