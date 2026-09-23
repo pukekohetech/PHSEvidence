@@ -246,21 +246,96 @@
     }
   }
 
-  function configureInstallHints() {
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isStandalone()) document.documentElement.classList.add('pwa-standalone');
+  const iosDevice = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const safariDesktop = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent) && !iosDevice();
 
-    if (ios && !isStandalone() && installBtn) {
-      // iOS Safari does not emit beforeinstallprompt.
-      installBtn.hidden = false;
-      installBtn.style.display = '';
-      installBtn.textContent = 'Install on this device';
-      installBtn.addEventListener('click', () => {
-        if (!deferredPrompt) showToast('On iPhone/iPad: Share → Add to Home Screen.', true, 4200);
-      });
+  function installButtons() {
+    return [document.getElementById('startInstallBtn'), document.getElementById('installBtn')].filter(Boolean);
+  }
+
+  function showInstallGuide(title, message) {
+    const backdrop = document.getElementById('installGuideBackdrop');
+    const titleEl = document.getElementById('installGuideTitle');
+    const textEl = document.getElementById('installGuideText');
+    if (!backdrop) {
+      if (typeof showToast === 'function') showToast(message, true, 5200);
+      return;
+    }
+    if (titleEl) titleEl.textContent = title;
+    if (textEl) textEl.textContent = message;
+    backdrop.hidden = false;
+    backdrop.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideInstallGuide() {
+    const backdrop = document.getElementById('installGuideBackdrop');
+    if (!backdrop) return;
+    backdrop.hidden = true;
+    backdrop.setAttribute('aria-hidden', 'true');
+  }
+
+  function updatePwaInstallUi() {
+    const installed = isStandalone();
+    document.documentElement.classList.toggle('pwa-standalone', installed);
+    for (const btn of installButtons()) {
+      btn.hidden = installed;
+      btn.style.display = installed ? 'none' : '';
+      btn.textContent = iosDevice() ? 'Add to Home Screen' : 'Install app';
     }
   }
+
+  async function requestPwaInstall() {
+    if (isStandalone()) {
+      if (typeof showToast === 'function') showToast('Evidence Camera is already installed.');
+      return;
+    }
+
+    const promptEvent = window.__phsDeferredPrompt;
+    if (promptEvent) {
+      try {
+        const result = await promptEvent.prompt();
+        window.__phsDeferredPrompt = null;
+        try { deferredPrompt = null; } catch (_) {}
+        updatePwaInstallUi();
+        if (result?.outcome === 'dismissed' && typeof showToast === 'function') {
+          showToast('Installation cancelled.', true, 2600);
+        }
+      } catch (err) {
+        console.warn('Install prompt failed', err);
+        showInstallGuide('Install Evidence Camera', 'Use your browser menu and choose Install app or Add to Home Screen.');
+      }
+      return;
+    }
+
+    if (location.protocol === 'file:') {
+      showInstallGuide('Open the hosted app first', 'A PWA cannot be installed from a downloaded HTML file. Open the HTTPS GitHub Pages version, then tap Install app.');
+      return;
+    }
+
+    if (iosDevice()) {
+      showInstallGuide('Add to Home Screen', 'In Safari, tap the Share button, choose Add to Home Screen, then tap Add.');
+      return;
+    }
+
+    if (safariDesktop()) {
+      showInstallGuide('Add to Dock', 'In Safari on Mac, use File → Add to Dock to install Evidence Camera.');
+      return;
+    }
+
+    showInstallGuide('Install from your browser', 'If the install dialog is not ready yet, use the browser install icon or menu and choose Install app. Make sure you are using the HTTPS hosted version.');
+  }
+
+  function configureInstallHints() {
+    updatePwaInstallUi();
+    document.getElementById('installGuideCloseBtn')?.addEventListener('click', hideInstallGuide);
+    document.getElementById('installGuideBackdrop')?.addEventListener('click', (event) => {
+      if (event.target?.id === 'installGuideBackdrop') hideInstallGuide();
+    });
+  }
+
+  window.requestPwaInstall = requestPwaInstall;
+  window.updatePwaInstallUi = updatePwaInstallUi;
 
   window.addEventListener('online', () => {
     updateBackupStatus();

@@ -1,43 +1,40 @@
-PHS EVIDENCE CAMERA - PWA PACKAGE
-=================================
+PHS Evidence Camera PWA v2 - Compact Camera Layout
 
-This folder is the installable Progressive Web App version of the PHS Evidence Camera.
+WHAT CHANGED
+- Student name moved into Settings.
+- Main camera view now contains only the camera/photo and camera controls.
+- The active app screen is locked to the device viewport: no page scrolling is required.
+- Camera frame is fitted to both available width and height, so it remains visible on short phones, tablets, Chromebooks, desktops and landscape devices.
+- Settings is the only panel allowed to scroll on very small screens.
+- Existing direct Gmail/Apps Script backup and offline outbox behaviour are retained.
 
-WHAT IS INCLUDED
-- index.html              Main camera app
-- manifest.webmanifest    App name, colours and icons
-- sw.js                   Service worker / offline app shell
-- pwa.js                  PWA install support + offline evidence outbox
-- icon-192.png / icon-512.png
-- icon-maskable-192.png / icon-maskable-512.png
-- apple-touch-icon.png
-- favicon-32.png
+DEPLOYMENT
+Upload all files in this folder together over HTTPS (for example GitHub Pages). Do not upload only index.html: installability and offline support require the manifest, service worker, PWA script and icons.
 
-IMPORTANT
-A PWA must be served over HTTPS (or localhost for development). Double-clicking index.html will still show the page, but installation, service worker caching and normal live-camera permissions require HTTPS.
+FIRST USE
+1. Open the app.
+2. Tap Activate camera.
+3. Settings opens on a new device. Enter Student name, choose Teacher, Subject and Project/task, then tap Done.
+4. Take the photo. It is stamped and backed up automatically.
+5. For a different student, use the menu at top-right and change Student name.
 
-GITHUB PAGES
-Upload all files in this folder together to the same site folder/repository. The existing Google Apps Script mail gateway is already built into index.html.
+Existing-photo upload follows the same stamped preview but requires pressing Send File.
 
-INSTALLING
-Android / Chrome / Edge / Chromebook:
-- Open the HTTPS site.
-- Open the three-line Settings menu.
-- Use "Install this app" when offered by the browser.
 
-Windows / Edge or Chrome:
-- Open the HTTPS site.
-- Install from the browser install icon or the Settings menu.
+PWA INSTALLATION
+----------------
+The app now has its own Install app button on the opening screen and in Settings.
 
-Apple iPhone / iPad:
-- Open the HTTPS site in Safari.
-- Share -> Add to Home Screen.
+Important: installation cannot work from a file opened by double-clicking index.html.
+The files must be hosted on HTTPS (for example GitHub Pages).
 
-OFFLINE BEHAVIOUR
-- The app shell opens after it has been loaded once online.
-- If a stamped photo cannot reach the mail gateway, the PWA stores a prepared evidence message in IndexedDB on that device.
-- When internet access returns, queued evidence is retried automatically.
-- Do not clear browser/site data while evidence is waiting to send.
+Chrome / Edge / Android / Chromebook:
+- Open the hosted HTTPS app.
+- Tap Install app.
+- If the browser has confirmed the PWA is installable, its native install dialog opens.
 
-MAIL
-The Gmail / Apps Script secret is NOT stored in this PWA. The app only contains the deployed gateway URL. Recipient selection remains controlled by the server-side Apps Script.
+iPhone / iPad:
+- Open the hosted app in Safari.
+- Tap Add to Home Screen in the app, then follow Share > Add to Home Screen.
+
+Once installed, the Install app buttons are hidden automatically.

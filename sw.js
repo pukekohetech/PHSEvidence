@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phs-evidence-camera-v1';
+const CACHE_VERSION = 'phs-evidence-camera-v3-install';
 const APP_SHELL = [
   './',
   './index.html',

@@ -3,7 +3,7 @@
   "name": "PHS Evidence Camera",
   "short_name": "PHS Evidence",
   "description": "Pukekohe High School Technology evidence camera with stamped photos and direct teacher backup.",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
