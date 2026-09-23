@@ -239,7 +239,7 @@
     if (!('serviceWorker' in navigator)) return;
     if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return;
     try {
-      const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=4', { scope: './' });
       registration.update().catch(() => {});
     } catch (err) {
       console.warn('Service worker registration failed', err);
@@ -277,11 +277,20 @@
 
   function updatePwaInstallUi() {
     const installed = isStandalone();
+    const promptReady = !!window.__phsDeferredPrompt;
     document.documentElement.classList.toggle('pwa-standalone', installed);
     for (const btn of installButtons()) {
-      btn.hidden = installed;
-      btn.style.display = installed ? 'none' : '';
-      btn.textContent = iosDevice() ? 'Add to Home Screen' : 'Install app';
+      if (installed) {
+        btn.hidden = true;
+        btn.style.display = 'none';
+        continue;
+      }
+      btn.hidden = false;
+      btn.style.display = '';
+      if (iosDevice()) btn.textContent = 'Add to Home Screen';
+      else if (safariDesktop()) btn.textContent = 'Add to Dock';
+      else btn.textContent = promptReady ? 'Install app' : 'Install app';
+      btn.dataset.installReady = promptReady ? '1' : '0';
     }
   }
 
@@ -323,7 +332,7 @@
       return;
     }
 
-    showInstallGuide('Install from your browser', 'If the install dialog is not ready yet, use the browser install icon or menu and choose Install app. Make sure you are using the HTTPS hosted version.');
+    showInstallGuide('Install from your browser', 'Chrome or Edge has not exposed its install prompt yet. Refresh this page once after the new PWA files finish deploying. If it still does not appear, use the browser menu and choose Install page as app / Apps > Install this site as an app.');
   }
 
   function configureInstallHints() {
@@ -336,6 +345,8 @@
 
   window.requestPwaInstall = requestPwaInstall;
   window.updatePwaInstallUi = updatePwaInstallUi;
+  window.addEventListener('phspwa-install-ready', updatePwaInstallUi);
+  window.addEventListener('phs-install-ready', updatePwaInstallUi);
 
   window.addEventListener('online', () => {
     updateBackupStatus();

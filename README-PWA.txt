@@ -38,3 +38,12 @@ iPhone / iPad:
 - Tap Add to Home Screen in the app, then follow Share > Add to Home Screen.
 
 Once installed, the Install app buttons are hidden automatically.
+
+
+PWA v4 INSTALL FIX
+------------------
+This build is intended for https://pukekohetech.github.io/phsphoto/
+Upload ALL files in this ZIP to the ROOT of the phsphoto repository.
+Important: service-worker.js deliberately replaces the older service worker already used by this site.
+The manifest and pwa.js links use ?v=4 cache-busting so an older service worker cannot keep returning stale install files.
+After GitHub Pages finishes deploying, close old phsphoto tabs, reopen the site, and refresh once.
