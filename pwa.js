@@ -66,11 +66,170 @@
       : 'Direct evidence backup connected';
   }
 
+  function cleanFolderName(value) {
+    return String(value || '')
+      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/[. ]+$/g, '')
+      .trim()
+      .slice(0, 120) || 'Student';
+  }
+
+  function getRoutingMeta(meta = {}) {
+    const teacherId = String(meta.teacherId || (typeof teacherSelect !== 'undefined' ? teacherSelect?.value : '') || '').trim();
+    const subjectId = String(meta.subjectId || (typeof subjectSelect !== 'undefined' ? subjectSelect?.value : '') || '').trim();
+    const projectId = String(meta.projectId || (typeof projectSelect !== 'undefined' ? projectSelect?.value : '') || '').trim();
+    const createdAt = meta.createdAt || new Date().toISOString();
+    const createdDate = new Date(createdAt);
+    const schoolYear = Number.isFinite(createdDate.getTime()) ? createdDate.getFullYear() : new Date().getFullYear();
+
+    const subjectLabel = subjectId === '__custom'
+      ? String((typeof customProjectInput !== 'undefined' ? customProjectInput?.value : '') || 'Custom subject').trim()
+      : String((typeof selections !== 'undefined' ? selections?.subjects?.find?.((s) => s.id === subjectId)?.label : '') || subjectId).trim();
+
+    const projectLabel = projectId === '__custom'
+      ? String((typeof customProjectInput !== 'undefined' ? customProjectInput?.value : '') || 'Other project').trim()
+      : String((typeof selections !== 'undefined' ? selections?.projects?.find?.((p) => p.id === projectId)?.label : '') || projectId).trim();
+
+    const studentName = String(meta.student || (typeof nameInput !== 'undefined' ? nameInput?.value : '') || 'Student').trim();
+    const classKey = [subjectId, teacherId]
+      .filter(Boolean)
+      .map((part) => part.replace(/^__|__$/g, ''))
+      .join('-')
+      .toUpperCase();
+
+    return {
+      routingVersion: 1,
+      schoolYear,
+      teacherId,
+      subjectId,
+      projectId,
+      classKey,
+      studentName,
+      studentFolder: cleanFolderName(studentName),
+      subjectLabel,
+      projectLabel,
+      createdAt
+    };
+  }
+
+  function routingTextBlock(meta = {}) {
+    const route = getRoutingMeta(meta);
+    return [
+      '[PHS_ROUTING]',
+      `routingVersion=${route.routingVersion}`,
+      `schoolYear=${route.schoolYear}`,
+      `teacherId=${route.teacherId}`,
+      `subjectId=${route.subjectId}`,
+      `projectId=${route.projectId}`,
+      `classKey=${route.classKey}`,
+      `studentName=${route.studentName}`,
+      `studentFolder=${route.studentFolder}`,
+      `subjectLabel=${route.subjectLabel}`,
+      `projectLabel=${route.projectLabel}`,
+      `createdAt=${route.createdAt}`,
+      '[/PHS_ROUTING]'
+    ].join('\n');
+  }
+
+  function snapshotRoutingToLastMeta() {
+    if (!lastMeta) return null;
+    const route = getRoutingMeta(lastMeta);
+    lastMeta.teacherId = route.teacherId;
+    lastMeta.subjectId = route.subjectId;
+    lastMeta.projectId = route.projectId;
+    lastMeta.schoolYear = route.schoolYear;
+    lastMeta.classKey = route.classKey;
+    lastMeta.studentFolder = route.studentFolder;
+    lastMeta.subjectLabel = route.subjectLabel;
+    lastMeta.projectLabel = route.projectLabel;
+    return route;
+  }
+
+  // Keep the existing human-readable email body, then append a predictable
+  // key=value block that Power Automate can parse without interpreting prose.
+  try {
+    const originalGetEmailBody = getEmailBody;
+    getEmailBody = function phsRoutingEmailBody() {
+      const body = originalGetEmailBody();
+      return `${body}\n\n${routingTextBlock(lastMeta || {})}`;
+    };
+  } catch (err) {
+    console.warn('Could not add routing metadata to the email body', err);
+  }
+
+  async function sendViaConfiguredGatewayWithRouting() {
+    const endpoint = getConfiguredMailEndpoint();
+    if (!endpoint) return false;
+
+    const routing = snapshotRoutingToLastMeta() || getRoutingMeta(lastMeta || {});
+    const recipients = getEmailRecipients();
+    const submissionId = makeSubmissionId();
+    const emailBlob = await makeEmailAttachment(lastBlob);
+    const dataUrl = await blobToDataUrl(emailBlob);
+    const base64 = String(dataUrl).split(',')[1] || '';
+    const jpgName = (lastMeta?.filename || 'PHS_Evidence.png').replace(/\.[^.]+$/, '.jpg');
+
+    const payload = {
+      appVersion: APP_CONFIG.appVersion || '',
+      submissionId,
+      filename: jpgName,
+      mimeType: 'image/jpeg',
+      base64,
+      requestedRecipients: recipients,
+      subject: getEmailSubject(),
+      body: getEmailBody(),
+      student: lastMeta?.student || routing.studentName,
+      teacher: lastMeta?.teacher || 'Teacher',
+      teacherId: routing.teacherId,
+      teacherEmail: lastMeta?.teacherEmail || '',
+      subjectId: routing.subjectId,
+      projectId: routing.projectId,
+      schoolYear: routing.schoolYear,
+      classKey: routing.classKey,
+      studentFolder: routing.studentFolder,
+      subjectLabel: routing.subjectLabel,
+      projectLabel: routing.projectLabel,
+      routing,
+      context: lastMeta?.context || 'Learning evidence',
+      createdAt: routing.createdAt
+    };
+
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify(payload),
+      cache: 'no-store'
+    };
+
+    if (EMAIL_CONFIG.provider === 'apps-script') options.mode = 'no-cors';
+
+    const response = await fetch(endpoint, options);
+    if (options.mode !== 'no-cors' && !response.ok) {
+      throw new Error(`Mail gateway returned ${response.status}`);
+    }
+
+    if (EMAIL_CONFIG.provider === 'apps-script') {
+      const status = await waitForMailGatewayStatus(endpoint, submissionId);
+      return { submitted: true, confirmed: status.confirmed };
+    }
+
+    return { submitted: true, confirmed: true };
+  }
+
+  // Extend the existing sender without changing the student-facing app.
+  try {
+    sendViaConfiguredGateway = sendViaConfiguredGatewayWithRouting;
+  } catch (err) {
+    console.warn('Could not enable structured routing payload', err);
+  }
+
   function makeQueuedPayload(meta, base64, mimeType, filename, submissionId) {
     const teacherEmail = String(meta?.teacherEmail || '').trim();
     const student = meta?.student || 'Student';
     const teacher = meta?.teacher || 'Teacher';
     const context = meta?.context || 'Learning evidence';
+    const routing = getRoutingMeta(meta);
     return {
       appVersion: APP_CONFIG.appVersion || '',
       submissionId,
@@ -84,14 +243,24 @@
         `Teacher: ${teacher}`,
         `Context: ${context}`,
         '',
-        'Stamped evidence photo attached.'
+        'Stamped evidence photo attached.',
+        '',
+        routingTextBlock(meta)
       ].join('\n'),
       student,
       teacher,
-      teacherId: meta?.teacherId || '',
+      teacherId: routing.teacherId,
       teacherEmail,
+      subjectId: routing.subjectId,
+      projectId: routing.projectId,
+      schoolYear: routing.schoolYear,
+      classKey: routing.classKey,
+      studentFolder: routing.studentFolder,
+      subjectLabel: routing.subjectLabel,
+      projectLabel: routing.projectLabel,
+      routing,
       context,
-      createdAt: meta?.createdAt || new Date().toISOString()
+      createdAt: routing.createdAt
     };
   }
 
@@ -329,6 +498,9 @@
   async function pwaEmailStamped(options = {}) {
     const automatic = options.automatic === true;
     if (!lastBlob) return showToast('Nothing to send.', false);
+
+    // Freeze the user's routing choices with this photo before sending or queueing.
+    snapshotRoutingToLastMeta();
 
     const endpoint = getConfiguredMailEndpoint();
     if (!endpoint) {
