@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'phs-evidence-camera-v5-install-fix';
+const CACHE_VERSION = 'phs-evidence-camera-v6-isolated';
+const CACHE_PREFIX = 'phs-evidence-camera-';
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest?v=4',
-  './pwa.js?v=4',
+  './manifest.webmanifest?v=6',
+  './pwa.js?v=6',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-192.png',
@@ -23,7 +24,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_VERSION)
+          .map((key) => caches.delete(key))
+      ))
       .then(() => self.clients.claim())
   );
 });
