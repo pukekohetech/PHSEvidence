@@ -1,66 +1,135 @@
-PHS EVIDENCE CAMERA - SAVE COPY + MACHINE-READABLE ROUTING
-===========================================================
+PHS EVIDENCE CAMERA - FULL GOOGLE DRIVE UPDATE v9
+=================================================
 
-Replace these two files in the root of the PHSEvidence GitHub repository:
-  - pwa.js
-  - service-worker.js
+This package combines the current Save-a-Copy + machine-routing PWA update with the complete
+Google Apps Script gateway needed to file evidence automatically in Google Drive.
+
+FILES IN THIS PACKAGE
+---------------------
+1. pwa.js
+   - Save-a-copy prompt after successful send.
+   - Machine-readable routing fields.
+   - Routing preserved for offline queued photos.
+
+2. service-worker.js
+   - Isolated PHSEvidence cache.
+   - v8 routing/save-copy cache version.
+
+3. Code.gs
+   - Complete replacement Google Apps Script gateway.
+   - Sends to selected teacher.
+   - BCCs PHS Technology Evidence Teams channel.
+   - Saves to Google Drive using Year > Class > Student.
+   - Project/task appears in filename, NOT as a folder.
+
+4. README-PWA-v8.txt
+   - Notes from the routing/save-copy PWA update.
+
+GOOGLE DRIVE STRUCTURE
+----------------------
+The Apps Script creates folders automatically:
+
+PHS Technology Evidence
+  / 2026
+    / 9TTEC-RY
+      / Joe Smith
+        / PHS_Joe_Smith_Photo_Frame_2026-09-24_111705.jpg
+        / PHS_Joe_Smith_Folding_Stool_2026-10-02_094422.jpg
+
+There is deliberately no project folder.
+
+ONE VALUE YOU MUST SET
+----------------------
+In Code.gs, find:
+
+    DRIVE_FOLDER_ID: '',
+
+Create or choose the top-level Google Drive folder you want to use, for example:
+
+    PHS Technology Evidence
+
+Open that folder in Google Drive. If its URL is:
+
+    https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOp
+
+set:
+
+    DRIVE_FOLDER_ID: '1AbCdEfGhIjKlMnOp',
+
+The Google account that owns/runs the Apps Script must have Editor access to that folder.
+
+DEPLOY - GOOGLE APPS SCRIPT
+---------------------------
+1. Open the existing PHS Evidence Apps Script project.
+2. Replace the entire current Code.gs with the supplied Code.gs.
+3. Paste in DRIVE_FOLDER_ID.
+4. Save.
+5. Google may request Drive permission the first time this version runs. Approve the Drive access.
+6. Deploy > Manage deployments.
+7. Edit the existing web-app deployment.
+8. Choose New version.
+9. Deploy.
+
+Updating the existing deployment should keep the same /exec URL.
+
+DEPLOY - PHSEVIDENCE GITHUB APP
+-------------------------------
+If you have already installed the v8 Save Copy + Routing files, you do NOT need to upload them again.
+
+If not, replace these two files in the root of the PHSEvidence GitHub repository:
+
+    pwa.js
+    service-worker.js
 
 No index.html change is required.
 
-WHAT THIS ADDS
---------------
-1. Keeps the existing post-send "Save a copy?" prompt.
-2. Adds stable routing data to every direct submission and offline-queued submission.
-3. Adds the same routing data as a marked key=value block at the bottom of the email body,
-   so a future Power Automate flow can parse it even if the current Google Apps Script gateway
-   ignores unknown JSON fields.
-4. Freezes the user's routing choices with the photo before sending/queueing.
-
-ROUTING FIELDS
---------------
-routingVersion
-schoolYear
-teacherId
-subjectId
-projectId
-classKey
-studentName
-studentFolder
-subjectLabel
-projectLabel
-createdAt
-
-EXAMPLE
--------
-[PHS_ROUTING]
-routingVersion=1
-schoolYear=2026
-teacherId=ry
-subjectId=9ttec
-projectId=9ttec_photo_frame
-classKey=9TTEC-RY
-studentName=Joe Smith
-studentFolder=Joe Smith
-subjectLabel=Year 9 Technology (9TTEC)
-projectLabel=Photo Frame
-createdAt=2026-09-24T01:23:45.000Z
-[/PHS_ROUTING]
-
-FUTURE SHAREPOINT ROUTE
+CURRENT EMAIL BEHAVIOUR
 -----------------------
-Power Automate can use:
-  schoolYear / classKey / studentFolder
+SEND_MODE remains:
 
-For example:
-  Technology Evidence / 2026 / 9TTEC-RY / Joe Smith / <photo.jpg>
+    selected_teacher
 
-The project remains metadata/filename information and does NOT create a project folder.
+So the teacher chosen by the user still receives the image.
 
-CACHE
------
-The service-worker cache is now:
-  phs-evidence-camera-v8-routing-save-copy
+A BCC copy is also sent to the Technology Evidence Teams channel:
 
-The existing ?v=6 URLs are intentionally retained so this remains a drop-in two-file update
-for the current index.html. Replacing service-worker.js changes the worker content and triggers
-an update; the new cache then refreshes pwa.js.
+    b656a75a.pukekohehigh.school.nz@apac.teams.ms
+
+GOOGLE DRIVE ROUTING
+--------------------
+The PHSEvidence app supplies values such as:
+
+    schoolYear=2026
+    teacherId=ry
+    subjectId=9ttec
+    projectId=9ttec_photo_frame
+    classKey=9TTEC-RY
+    studentFolder=Joe Smith
+    projectLabel=Photo Frame
+
+The Apps Script uses:
+
+    schoolYear / classKey / studentFolder
+
+to create the Drive path.
+
+Project/task is used in the filename instead of creating another folder.
+
+FIRST TEST
+----------
+Take one test photo using a test student name and real teacher/subject/project selections.
+
+Confirm:
+1. Selected teacher receives the evidence.
+2. Technology Evidence Teams channel receives the BCC copy.
+3. Google Drive automatically creates:
+      Year > Class > Student
+4. The image appears in the student folder.
+5. The project name is in the filename.
+6. No project folder is created.
+
+FAIL-SAFE BEHAVIOUR
+-------------------
+Email delivery and Drive filing are deliberately separated.
+If Drive filing fails, the email can still be delivered.
+The gateway status reports driveSaved=false and a short driveError message for troubleshooting.
