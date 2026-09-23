@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phs-evidence-camera-v6-isolated';
+const CACHE_VERSION = 'phs-evidence-camera-v7-save-copy';
 const CACHE_PREFIX = 'phs-evidence-camera-';
 const APP_SHELL = [
   './',

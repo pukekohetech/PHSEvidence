@@ -161,6 +161,170 @@
     }
   }
 
+  let saveCopyPromptEl = null;
+
+  function ensureSaveCopyPrompt() {
+    if (saveCopyPromptEl) return saveCopyPromptEl;
+
+    if (!document.getElementById('phsSaveCopyStyles')) {
+      const style = document.createElement('style');
+      style.id = 'phsSaveCopyStyles';
+      style.textContent = `
+        .phs-save-copy-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 10050;
+          display: grid;
+          place-items: center;
+          padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+          background: rgba(0,0,0,.52);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+        .phs-save-copy-backdrop[hidden] { display: none !important; }
+        .phs-save-copy-card {
+          width: min(92vw, 360px);
+          padding: 22px;
+          border: 1px solid rgba(255,255,255,.16);
+          border-radius: 22px;
+          background: rgba(20,20,22,.96);
+          color: #fff;
+          box-shadow: 0 22px 70px rgba(0,0,0,.42);
+          text-align: center;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        }
+        .phs-save-copy-check {
+          width: 54px;
+          height: 54px;
+          margin: 0 auto 12px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #16803a;
+          font-size: 30px;
+          font-weight: 800;
+          line-height: 1;
+        }
+        .phs-save-copy-card h2 { margin: 0; font-size: 1.35rem; }
+        .phs-save-copy-card p { margin: 8px 0 18px; color: rgba(255,255,255,.78); line-height: 1.35; }
+        .phs-save-copy-actions { display: grid; gap: 10px; }
+        .phs-save-copy-actions button {
+          min-height: 50px;
+          border: 0;
+          border-radius: 15px;
+          padding: 0 18px;
+          font: inherit;
+          font-weight: 750;
+          cursor: pointer;
+        }
+        .phs-save-copy-save { background: #fff; color: #111; }
+        .phs-save-copy-skip { background: rgba(255,255,255,.10); color: #fff; }
+        .phs-save-copy-actions button:disabled { opacity: .58; cursor: default; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'phsSaveCopyPrompt';
+    backdrop.className = 'phs-save-copy-backdrop';
+    backdrop.hidden = true;
+    backdrop.setAttribute('role', 'presentation');
+    backdrop.innerHTML = `
+      <section class="phs-save-copy-card" role="dialog" aria-modal="true" aria-labelledby="phsSaveCopyTitle">
+        <div class="phs-save-copy-check" aria-hidden="true">✓</div>
+        <h2 id="phsSaveCopyTitle">Evidence sent</h2>
+        <p>Save a copy of this stamped photo to this device?</p>
+        <div class="phs-save-copy-actions">
+          <button class="phs-save-copy-save" type="button">Save copy</button>
+          <button class="phs-save-copy-skip" type="button">No thanks</button>
+        </div>
+      </section>`;
+    document.body.appendChild(backdrop);
+
+    const saveBtn = backdrop.querySelector('.phs-save-copy-save');
+    const skipBtn = backdrop.querySelector('.phs-save-copy-skip');
+
+    saveBtn?.addEventListener('click', async () => {
+      if (!lastBlob || !lastMeta) {
+        backdrop.hidden = true;
+        returnToLiveCamera();
+        return;
+      }
+
+      const original = saveBtn.textContent;
+      saveBtn.disabled = true;
+      skipBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      try {
+        // File System Access gives Windows/Chromebook users a real Save As dialogue.
+        if ('showSaveFilePicker' in window && window.isSecureContext) {
+          const ext = (lastMeta.filename || '').toLowerCase().endsWith('.png') ? 'png' : 'jpg';
+          const mime = lastBlob.type || (ext === 'png' ? 'image/png' : 'image/jpeg');
+          const handle = await window.showSaveFilePicker({
+            suggestedName: lastMeta.filename || `PHS_Evidence.${ext}`,
+            types: [{ description: 'Evidence photo', accept: { [mime]: [`.${ext}`] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(lastBlob);
+          await writable.close();
+        } else {
+          // Reliable fallback for Android, iOS, Safari and browsers without File System Access.
+          downloadStamped();
+        }
+        if (typeof showToast === 'function') showToast('Copy saved to this device.');
+        backdrop.hidden = true;
+        setTimeout(returnToLiveCamera, 250);
+      } catch (err) {
+        if (err?.name === 'AbortError') {
+          saveBtn.textContent = original;
+          saveBtn.disabled = false;
+          skipBtn.disabled = false;
+          return;
+        }
+        console.warn('Save copy failed; trying browser download fallback.', err);
+        try {
+          downloadStamped();
+          if (typeof showToast === 'function') showToast('Copy downloaded to this device.');
+          backdrop.hidden = true;
+          setTimeout(returnToLiveCamera, 250);
+        } catch (fallbackErr) {
+          console.error('Could not save local copy', fallbackErr);
+          if (typeof showToast === 'function') showToast('Could not save a local copy on this device.', false, 4200);
+          saveBtn.textContent = original;
+          saveBtn.disabled = false;
+          skipBtn.disabled = false;
+        }
+      }
+    });
+
+    skipBtn?.addEventListener('click', () => {
+      backdrop.hidden = true;
+      returnToLiveCamera();
+    });
+
+    saveCopyPromptEl = backdrop;
+    return backdrop;
+  }
+
+  function showSaveCopyPrompt() {
+    if (!lastBlob || !lastMeta) {
+      returnToLiveCamera();
+      return;
+    }
+    try { hideSendCurtain(); } catch (_) {}
+    const prompt = ensureSaveCopyPrompt();
+    const saveBtn = prompt.querySelector('.phs-save-copy-save');
+    const skipBtn = prompt.querySelector('.phs-save-copy-skip');
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save copy';
+    }
+    if (skipBtn) skipBtn.disabled = false;
+    prompt.hidden = false;
+    setTimeout(() => saveBtn?.focus(), 30);
+  }
+
   // Replace the direct-send UI handler with one that can safely queue evidence offline.
   async function pwaEmailStamped(options = {}) {
     const automatic = options.automatic === true;
@@ -203,11 +367,11 @@
         if (sendResult.confirmed) {
           if (emailStatusEl) emailStatusEl.textContent = '✓ Evidence sent and confirmed.';
           showSendCurtain('success', 'Evidence sent', 'Backed up successfully');
-          setTimeout(returnToLiveCamera, 700);
+          setTimeout(showSaveCopyPrompt, 420);
         } else {
           if (emailStatusEl) emailStatusEl.textContent = 'Evidence submitted.';
           showSendCurtain('success', 'Evidence submitted', 'Returning to camera');
-          setTimeout(returnToLiveCamera, 900);
+          setTimeout(showSaveCopyPrompt, 520);
         }
       }
     } catch (err) {
