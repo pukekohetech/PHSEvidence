@@ -1,10 +1,16 @@
-const CACHE_VERSION = 'phs-evidence-camera-v11-gateway-v2';
+const CACHE_VERSION = 'phs-evidence-camera-v12-config-json';
 const CACHE_PREFIX = 'phs-evidence-camera-';
+const CONFIG_PATHS = new Set([
+  '/PHSEvidence/app-settings.json',
+  '/PHSEvidence/teaching-data.json'
+]);
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest?v=7',
-  './pwa.js?v=7',
+  './manifest.webmanifest?v=8',
+  './config-loader.js?v=2',
+  './pwa.js?v=8',
+  './phs-shield.png',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-192.png',
@@ -12,6 +18,31 @@ const APP_SHELL = [
   './apple-touch-icon.png',
   './favicon-32.png'
 ];
+
+function isConfigRequest(url) {
+  return url.origin === self.location.origin && CONFIG_PATHS.has(url.pathname);
+}
+
+function configCacheKey(request) {
+  const url = new URL(request.url);
+  url.search = '';
+  url.hash = '';
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+async function networkFirstConfig(request) {
+  const cache = await caches.open(CACHE_VERSION);
+  const cacheKey = configCacheKey(request);
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (response && response.ok) await cache.put(cacheKey, response.clone());
+    return response;
+  } catch (err) {
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+    throw err;
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,6 +70,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (isConfigRequest(url)) {
+    event.respondWith(networkFirstConfig(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(

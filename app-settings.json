@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-Term-4",
+  "school": {
+    "name": "Pukekohe High School",
+    "shortName": "PHS",
+    "faculty": "Technology",
+    "appName": "PHS Evidence Camera"
+  },
+  "branding": {
+    "logo": "phs-shield.png",
+    "themeColour": "#6e1818",
+    "backgroundColour": "#090a0c",
+    "accentColour": "#f2b632"
+  },
+  "gateway": {
+    "url": "https://script.google.com/macros/s/AKfycbyIGKMYC74b2kG42gYs4QlZvLdl1IbhZuvGn1pputswfHvGPupHOkKj0XISJrnY3sf4uA/exec",
+    "provider": "apps-script",
+    "destinationLabel": "the teacher evidence inbox"
+  },
+  "image": {
+    "maxDimension": 2000,
+    "jpegQuality": 0.88,
+    "includeLogo": true,
+    "includeDateTime": true,
+    "includeStudentName": true,
+    "includeTeacher": true,
+    "includeClass": true,
+    "includeProject": true
+  },
+  "features": {
+    "autoSendAfterStamp": true,
+    "allowUploadExistingPhoto": true,
+    "allowSaveCopy": true,
+    "allowInstallApp": true,
+    "rememberStudentName": true,
+    "showThemeButton": true
+  },
+  "routing": {
+    "classFolderPattern": "{class}-{teacher}",
+    "studentFolderPattern": "{student}",
+    "filenamePattern": "PHS_{student}_{project}_{timestamp}"
+  },
+  "labels": {
+    "studentName": "Student name",
+    "teacher": "Teacher",
+    "class": "Class",
+    "project": "Project / task",
+    "takePhoto": "Take Photo",
+    "send": "Send",
+    "saveCopy": "Save copy"
+  }
+}

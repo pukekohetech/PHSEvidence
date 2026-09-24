@@ -1,0 +1,27 @@
+{
+  "configVersion": "2026-Term-4",
+  "teachers": [
+    {"code":"RY","name":"Mr Reynolds","email":"ry@pukekohehigh.school.nz","classes":["9TTEC","10TTEC","9TDVC","10TDVC","11TDVC","12TDVC","13TDVC","1TEGR","2TEGR","3TEGR","1TBLD","2TBLD","2BLDT"]},
+    {"code":"NCC","name":"Mr Nicholls","email":"ncc@pukekohehigh.school.nz","classes":["1TEGR","2TEGR","3TEGR","9TTEC","10TTEC"]},
+    {"code":"KPC","name":"Mr Knapman","email":"kpc@pukekohehigh.school.nz","classes":["1TEGR","2TEGR","3TEGR"]},
+    {"code":"RNR","name":"Mr Ranson","email":"rnr@pukekohehigh.school.nz","classes":["1TBLD","2TBLD","2BLDT","9TTEC","10TTEC"]},
+    {"code":"MSL","name":"Mrs Mous","email":"msl@pukekohehigh.school.nz","classes":["9TTEC","10TTEC"]},
+    {"code":"CLC","name":"Mrs Coull","email":"clc@pukekohehigh.school.nz","classes":["9TTEC","10TTEC"]},
+    {"code":"DVM","name":"Mrs Devaney","email":"dvm@pukekohehigh.school.nz","classes":["9TDVC","10TDVC","11TDVC","12TDVC","13TDVC"]}
+  ],
+  "classes": [
+    {"code":"9TTEC","name":"Year 9 Technology","projects":["Electric Circuit","Photo Frame","Folding Stool","Matariki"]},
+    {"code":"10TTEC","name":"Year 10 Technology","projects":["Pewter Casting","Modular Furniture","Picnic Table"]},
+    {"code":"9TDVC","name":"Year 9 DVC","projects":["Own project"]},
+    {"code":"10TDVC","name":"Year 10 DVC","projects":["Own project"]},
+    {"code":"11TDVC","name":"Level 1 DVC","projects":["Spatial Design","Own project"]},
+    {"code":"12TDVC","name":"Level 2 DVC","projects":["Spatial Design","Own project"]},
+    {"code":"13TDVC","name":"Level 3 DVC","projects":["Spatial Design","Own project"]},
+    {"code":"1TEGR","name":"Level 1 Engineering","projects":["Pencil Case","Marking Gauge","Own project"]},
+    {"code":"2TEGR","name":"Level 2 Engineering","projects":["Tool Box","Machine Vice","Other / Own project"]},
+    {"code":"3TEGR","name":"Level 3 Engineering","projects":["Handy Trolley","Sheet Metal Funnel","Own project"]},
+    {"code":"1TBLD","name":"Level 1 Building","projects":["File Box","Tool Box","Planter Box","Other"]},
+    {"code":"2TBLD","name":"Level 2 Building","projects":["Step Ladder","Cape Cod Rocker","Other"]},
+    {"code":"2BLDT","name":"Building Trades","projects":["Small Sleepout"]}
+  ]
+}

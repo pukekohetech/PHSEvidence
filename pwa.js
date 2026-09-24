@@ -75,42 +75,71 @@
       .slice(0, 120) || 'Student';
   }
 
+  function schoolShortName() {
+    return window.PHS_CONFIG?.settings?.school?.shortName || 'PHS';
+  }
+
+  function getConfiguredRoutingSettings() {
+    return window.PHS_CONFIG?.settings?.routing || {
+      classFolderPattern: '{class}-{teacher}',
+      studentFolderPattern: '{student}',
+      filenamePattern: 'PHS_{student}_{project}_{timestamp}'
+    };
+  }
+
   function getRoutingMeta(meta = {}) {
+    // A captured photo owns its routing snapshot. Never recalculate queued
+    // evidence from a newer teaching-data.json or app-settings.json.
+    if (meta?.routing) return { ...meta.routing };
+
+    // Compatibility for evidence captured by the previous production build,
+    // where the routing snapshot was stored as flat lastMeta fields.
+    if (meta?.schoolYear && meta?.classKey && meta?.teacherId && meta?.subjectId && meta?.projectId && meta?.createdAt) {
+      return {
+        routingVersion: Number(meta.routingVersion || 1),
+        schoolYear: Number(meta.schoolYear),
+        teacherId: String(meta.teacherId),
+        subjectId: String(meta.subjectId),
+        projectId: String(meta.projectId),
+        classKey: String(meta.classKey),
+        studentName: String(meta.student || meta.studentName || 'Student').trim(),
+        studentFolder: cleanFolderName(meta.studentFolder || meta.student || meta.studentName || 'Student'),
+        subjectLabel: String(meta.subjectLabel || ''),
+        projectLabel: String(meta.projectLabel || ''),
+        createdAt: String(meta.createdAt)
+      };
+    }
+
     const teacherId = String(meta.teacherId || (typeof teacherSelect !== 'undefined' ? teacherSelect?.value : '') || '').trim();
     const subjectId = String(meta.subjectId || (typeof subjectSelect !== 'undefined' ? subjectSelect?.value : '') || '').trim();
     const projectId = String(meta.projectId || (typeof projectSelect !== 'undefined' ? projectSelect?.value : '') || '').trim();
     const createdAt = meta.createdAt || new Date().toISOString();
-    const createdDate = new Date(createdAt);
-    const schoolYear = Number.isFinite(createdDate.getTime()) ? createdDate.getFullYear() : new Date().getFullYear();
 
-    const subjectLabel = subjectId === '__custom'
-      ? String((typeof customProjectInput !== 'undefined' ? customProjectInput?.value : '') || 'Custom subject').trim()
-      : String((typeof selections !== 'undefined' ? selections?.subjects?.find?.((s) => s.id === subjectId)?.label : '') || subjectId).trim();
+    const runtimeTeaching = window.PHS_CONFIG?.teaching;
+    const teacherRecord = runtimeTeaching?.teachers?.find?.((t) => t.id === teacherId)
+      || (typeof selections !== 'undefined' ? selections?.teachers?.find?.((t) => t.id === teacherId) : null);
+    const subjectRecord = runtimeTeaching?.subjects?.find?.((s) => s.id === subjectId)
+      || (typeof selections !== 'undefined' ? selections?.subjects?.find?.((s) => s.id === subjectId) : null);
+    const projectRecord = runtimeTeaching?.projects?.find?.((p) => p.id === projectId)
+      || (typeof selections !== 'undefined' ? selections?.projects?.find?.((p) => p.id === projectId) : null);
 
+    const subjectLabel = String(subjectRecord?.label || subjectId || 'Subject').trim();
     const projectLabel = projectId === '__custom'
-      ? String((typeof customProjectInput !== 'undefined' ? customProjectInput?.value : '') || 'Other project').trim()
-      : String((typeof selections !== 'undefined' ? selections?.projects?.find?.((p) => p.id === projectId)?.label : '') || projectId).trim();
+      ? String(meta.projectLabel || (typeof customProjectInput !== 'undefined' ? customProjectInput?.value : '') || 'Other project').trim()
+      : String(meta.projectLabel || projectRecord?.label || projectId || 'Evidence').trim();
+    const studentName = String(meta.student || meta.studentName || (typeof nameInput !== 'undefined' ? nameInput?.value : '') || 'Student').trim();
 
-    const studentName = String(meta.student || (typeof nameInput !== 'undefined' ? nameInput?.value : '') || 'Student').trim();
-    const classKey = [subjectId, teacherId]
-      .filter(Boolean)
-      .map((part) => part.replace(/^__|__$/g, ''))
-      .join('-')
-      .toUpperCase();
-
-    return {
-      routingVersion: 1,
-      schoolYear,
+    return window.PHSConfigLoader.buildRoutingMeta({
+      teacherCode: teacherRecord?.code || teacherId,
       teacherId,
+      classCode: subjectRecord?.code || subjectId,
       subjectId,
       projectId,
-      classKey,
-      studentName,
-      studentFolder: cleanFolderName(studentName),
-      subjectLabel,
       projectLabel,
+      subjectLabel,
+      studentName,
       createdAt
-    };
+    }, getConfiguredRoutingSettings());
   }
 
   function routingTextBlock(meta = {}) {
@@ -135,6 +164,8 @@
   function snapshotRoutingToLastMeta() {
     if (!lastMeta) return null;
     const route = getRoutingMeta(lastMeta);
+    lastMeta.routing = route;
+    lastMeta.routingVersion = route.routingVersion;
     lastMeta.teacherId = route.teacherId;
     lastMeta.subjectId = route.subjectId;
     lastMeta.projectId = route.projectId;
@@ -241,7 +272,7 @@
       mimeType,
       base64,
       requestedRecipients: teacherEmail ? [teacherEmail] : [],
-      subject: `PHS Evidence - ${student}`,
+      subject: `${schoolShortName()} Evidence - ${student}`,
       body: [
         `Student: ${student}`,
         `Teacher: ${teacher}`,
@@ -481,6 +512,11 @@
   }
 
   function showSaveCopyPrompt() {
+    const allowSaveCopy = window.PHS_CONFIG?.settings?.features?.allowSaveCopy !== false;
+    if (!allowSaveCopy) {
+      returnToLiveCamera();
+      return;
+    }
     if (!lastBlob || !lastMeta) {
       returnToLiveCamera();
       return;
@@ -491,7 +527,7 @@
     const skipBtn = prompt.querySelector('.phs-save-copy-skip');
     if (saveBtn) {
       saveBtn.disabled = false;
-      saveBtn.textContent = 'Save copy';
+      saveBtn.textContent = window.PHS_CONFIG?.settings?.labels?.saveCopy || 'Save copy';
     }
     if (skipBtn) skipBtn.disabled = false;
     prompt.hidden = false;
@@ -590,7 +626,7 @@
     if (!('serviceWorker' in navigator)) return;
     if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return;
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=7', { scope: './' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=8', { scope: './' });
       registration.update().catch(() => {});
     } catch (err) {
       console.warn('Service worker registration failed', err);
@@ -600,6 +636,10 @@
   const iosDevice = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const safariDesktop = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent) && !iosDevice();
+
+  function installAllowed() {
+    return window.PHS_CONFIG?.settings?.features?.allowInstallApp !== false;
+  }
 
   function installButtons() {
     return [document.getElementById('startInstallBtn'), document.getElementById('installBtn')].filter(Boolean);
@@ -631,7 +671,7 @@
     const promptReady = !!window.__phsDeferredPrompt;
     document.documentElement.classList.toggle('pwa-standalone', installed);
     for (const btn of installButtons()) {
-      if (installed) {
+      if (installed || !installAllowed()) {
         btn.hidden = true;
         btn.style.display = 'none';
         continue;
@@ -646,6 +686,7 @@
   }
 
   async function requestPwaInstall() {
+    if (!installAllowed()) return;
     if (isStandalone()) {
       if (typeof showToast === 'function') showToast('Evidence Camera is already installed.');
       return;
