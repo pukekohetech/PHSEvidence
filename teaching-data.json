@@ -1,27 +1,332 @@
 {
   "configVersion": "2026-Term-4",
   "teachers": [
-    {"code":"RY","name":"Mr Reynolds","email":"ry@pukekohehigh.school.nz","classes":["9TTEC","10TTEC","9TDET","10TDET","11TSPD","12TSPD","13TSPD","1TEGR","2TEGR","3TEGR","1TBLD","2TBLD","2BLDT"]},
-    {"code":"NCC","name":"Mr Nicholls","email":"ncc@pukekohehigh.school.nz","classes":["1TEGR","2TEGR","3TEGR","9TTEC","10TTEC"]},
-    {"code":"KPC","name":"Mr Knapman","email":"kpc@pukekohehigh.school.nz","classes":["9TDET","9TTEC","1TEGR","2TEGR","3TEGR"]},
-    {"code":"RNR","name":"Mr Ranson","email":"rnr@pukekohehigh.school.nz","classes":["1TBLD","2TBLD","2BLDT","9TTEC","10TTEC"]},
-    {"code":"MSL","name":"Mrs Mous","email":"msl@pukekohehigh.school.nz","classes":["9TTEC","10TTEC"]},
-    {"code":"CLC","name":"Mrs Coull","email":"clc@pukekohehigh.school.nz","classes":["9TTEC","10TTEC"]},
-    {"code":"DVM","name":"Mrs Devaney","email":"dvm@pukekohehigh.school.nz","classes":["9TDET","10TDET","11TSPD","12TSPD","13TSPD"]}
+    {
+      "code": "RY",
+      "name": "Mr Reynolds",
+      "email": "ry@pukekohehigh.school.nz",
+      "classes": [
+        "9TDET",
+        "1TFNT",
+        "1TBLD",
+        "2TBLD",
+        "2BLDT"
+      ]
+    },
+    {
+      "code": "NCC",
+      "name": "Mr Nicholls",
+      "email": "ncc@pukekohehigh.school.nz",
+      "classes": [
+        "1TEGR",
+        "2TEGR",
+        "3TEGR",
+        "1TFNT"
+      ]
+    },
+    {
+      "code": "KPC",
+      "name": "Mr Knapman",
+      "email": "kpc@pukekohehigh.school.nz",
+      "classes": [
+        "9TDET",
+        "1TFNT",
+        "1TEGR",
+        "2TEGR",
+        "3TEGR"
+      ]
+    },
+    {
+      "code": "RNR",
+      "name": "Mr Ranson",
+      "email": "rnr@pukekohehigh.school.nz",
+      "classes": [
+        "1TBLD",
+        "2TBLD",
+        "1TFNT"
+      ]
+    },
+    {
+      "code": "MSL",
+      "name": "Mrs Mous",
+      "email": "msl@pukekohehigh.school.nz",
+      "classes": [
+        "1TFNT",
+        "10TTEC"
+      ]
+    },
+    {
+      "code": "CLC",
+      "name": "Mrs Coull",
+      "email": "clc@pukekohehigh.school.nz",
+      "classes": [
+        "1TFNT",
+        "10TTEC"
+      ]
+    },
+    {
+      "code": "DVM",
+      "name": "Mrs Devaney",
+      "email": "dvm@pukekohehigh.school.nz",
+      "classes": [
+        "9TDET",
+        "10TDET",
+        "11TSPD",
+        "12TSPD",
+        "13TSPD"
+      ]
+    },
+    {
+      "code": "BNM",
+      "name": "Mrs M Bernarte",
+      "email": "bnm@pukekohehigh.school.nz",
+      "classes": [
+        "9TFNT",
+        "10TFNT",
+        "1TCAT"
+      ]
+    },
+    {
+      "code": "FLL",
+      "name": "Mrs L Fulford",
+      "email": "fll@pukekohehigh.school.nz",
+      "classes": [
+        "9TFNT",
+        "2TCAT",
+        "2TFNT"
+      ]
+    },
+    {
+      "code": "JC",
+      "name": "Mrs C Jacobs",
+      "email": "jc@pukekohehigh.school.nz",
+      "classes": [
+        "9TFNT",
+        "2TCAT",
+        "3TFNT"
+      ]
+    },
+    {
+      "code": "MDT",
+      "name": "Miss T Madelozo",
+      "email": "mdt@pukekohehigh.school.nz",
+      "classes": [
+        "10TFNT",
+        "1TCAT",
+        "3TCAT"
+      ]
+    },
+    {
+      "code": "RNH",
+      "name": "Miss Herasha Randhir",
+      "email": "rnh@pukekohehigh.school.nz",
+      "classes": [
+        "9TFNT",
+        "10TFNT",
+        "3TCAT",
+        "HOSPTR"
+      ]
+    }
   ],
   "classes": [
-    {"code":"9TTEC","name":"Year 9 Technology","projects":["Electric Circuit","Photo Frame","Folding Stool","Matariki"]},
-    {"code":"10TTEC","name":"Year 10 Technology","projects":["Pewter Casting","Modular Furniture","Picnic Table"]},
-    {"code":"9TDET","name":"Year 9 DET","projects":["Own project"]},
-    {"code":"10TDET","name":"Year 10 DET","projects":["Own project"]},
-    {"code":"11TSPD","name":"Level 1 SPD","projects":["Spatial Design","Own project"]},
-    {"code":"12TSPD","name":"Level 2 SPD","projects":["Spatial Design","Own project"]},
-    {"code":"13TSPD","name":"Level 3 SPD","projects":["Spatial Design","Own project"]},
-    {"code":"1TEGR","name":"Level 1 Engineering","projects":["Pencil Case","Marking Gauge","Own project"]},
-    {"code":"2TEGR","name":"Level 2 Engineering","projects":["Tool Box","Machine Vice","Other / Own project"]},
-    {"code":"3TEGR","name":"Level 3 Engineering","projects":["Handy Trolley","Sheet Metal Funnel","Own project"]},
-    {"code":"1TBLD","name":"Level 1 Building","projects":["File Box","Tool Box","Planter Box","Other"]},
-    {"code":"2TBLD","name":"Level 2 Building","projects":["Step Ladder","Cape Cod Rocker","Other"]},
-    {"code":"2BLDT","name":"Building Trades","projects":["Small Sleepout"]}
+    {
+      "code": "1TFNT",
+      "name": "Year 11 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "10TTEC",
+      "name": "Year 10 Technology",
+      "projects": [
+        "Pewter Casting",
+        "Modular Furniture",
+        "Picnic Table"
+      ]
+    },
+    {
+      "code": "9TDET",
+      "name": "Year 9 DET",
+      "projects": [
+        "Own project"
+      ]
+    },
+    {
+      "code": "10TDET",
+      "name": "Year 10 DET",
+      "projects": [
+        "Own project"
+      ]
+    },
+    {
+      "code": "11TSPD",
+      "name": "Level 1 SPD",
+      "projects": [
+        "Spatial Design",
+        "Own project"
+      ]
+    },
+    {
+      "code": "12TSPD",
+      "name": "Level 2 SPD",
+      "projects": [
+        "Spatial Design",
+        "Own project"
+      ]
+    },
+    {
+      "code": "13TSPD",
+      "name": "Level 3 SPD",
+      "projects": [
+        "Spatial Design",
+        "Own project"
+      ]
+    },
+    {
+      "code": "1TEGR",
+      "name": "Level 1 Engineering",
+      "projects": [
+        "Pencil Case",
+        "Marking Gauge",
+        "Own project"
+      ]
+    },
+    {
+      "code": "2TEGR",
+      "name": "Level 2 Engineering",
+      "projects": [
+        "Tool Box",
+        "Machine Vice",
+        "Other / Own project"
+      ]
+    },
+    {
+      "code": "3TEGR",
+      "name": "Level 3 Engineering",
+      "projects": [
+        "Handy Trolley",
+        "Sheet Metal Funnel",
+        "Own project"
+      ]
+    },
+    {
+      "code": "1TBLD",
+      "name": "Level 1 Building",
+      "projects": [
+        "File Box",
+        "Tool Box",
+        "Planter Box",
+        "Other"
+      ]
+    },
+    {
+      "code": "2TBLD",
+      "name": "Level 2 Building",
+      "projects": [
+        "Step Ladder",
+        "Cape Cod Rocker",
+        "Other"
+      ]
+    },
+    {
+      "code": "2BLDT",
+      "name": "Building Trades",
+      "projects": [
+        "Small Sleepout"
+      ]
+    },
+    {
+      "code": "9TFNT",
+      "name": "Year 9 Food & Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "10TFNT",
+      "name": "Year 10 Food & Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "1TCAT",
+      "name": "Level 1 Catering",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "2TCAT",
+      "name": "Level 2 Catering",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "3TCAT",
+      "name": "Level 3 Catering",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "HOSPTR",
+      "name": "Hospitality / Trades",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "2TFNT",
+      "name": "Year 12 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "3TFNT",
+      "name": "Year 13 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    }
   ]
 }
