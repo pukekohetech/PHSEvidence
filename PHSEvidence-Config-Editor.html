@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PHSEvidence Configuration Editor</title>
+<style>
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #18202f;
+  background: #eef1f5;
+  --brand: #6e1818;
+  --brand-dark: #471010;
+  --brand-soft: #f6eaea;
+  --line: #d7dde7;
+  --muted: #627087;
+  --panel: #ffffff;
+  --ok: #176b38;
+  --warn: #8a4b00;
+  --bad: #a61b1b;
+  --shadow: 0 8px 30px rgba(27, 38, 59, .08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: #eef1f5; color: #18202f; line-height: 1.45; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+.topbar { background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: #fff; padding: 20px clamp(18px, 4vw, 48px); }
+.topbar-inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.topbar h1 { margin: 0; font-size: clamp(1.45rem, 2.8vw, 2rem); }
+.topbar p { margin: 5px 0 0; color: rgba(255,255,255,.82); }
+.status-cluster { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.status-pill { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 7px 10px; font-size: .9rem; }
+.toolbar-btn { border: 1px solid rgba(255,255,255,.45); background: #fff; color: var(--brand); border-radius: 10px; padding: 8px 13px; font-weight: 700; }
+.shell { max-width: 1320px; margin: 0 auto; padding: 22px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tab { border: 1px solid var(--line); background: #fff; color: #29364a; padding: 10px 15px; border-radius: 11px; font-weight: 700; }
+.tab[aria-selected="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+.panel { display: none; }
+.panel.active { display: block; }
+.version-row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); padding: 14px 16px; border-radius: 14px; margin-bottom: 16px; }
+.version-row label { min-width: 240px; }
+.editor-section { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 18px; overflow: hidden; }
+.section-head { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--line); background: #fbfcfe; }
+.section-head h2 { margin: 0; font-size: 1.15rem; }
+.section-head p { margin: 2px 0 0; color: var(--muted); font-size: .92rem; }
+.primary-btn, .secondary-btn, .danger-btn, .icon-btn { border-radius: 10px; padding: 9px 12px; border: 1px solid transparent; font-weight: 700; }
+.primary-btn { background: var(--brand); color: #fff; }
+.secondary-btn { background: #fff; color: #29364a; border-color: #bfc8d5; }
+.danger-btn { background: #fff; color: var(--bad); border-color: #e6b7b7; }
+.icon-btn { padding: 6px 9px; background: #fff; border-color: #cfd6e0; color: #344054; }
+.two-pane { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 2fr); min-height: 360px; }
+.entity-list { border-right: 1px solid var(--line); padding: 10px; background: #fafbfc; max-height: 560px; overflow: auto; }
+.entity-button { width: 100%; border: 1px solid transparent; background: transparent; text-align: left; padding: 11px 12px; border-radius: 10px; margin-bottom: 5px; color: #223049; }
+.entity-button:hover { background: #f0f3f8; }
+.entity-button.active { background: var(--brand-soft); border-color: #d8abab; }
+.entity-button strong, .entity-button span { display: block; }
+.entity-button span { font-size: .86rem; color: var(--muted); margin-top: 2px; }
+.editor-form { padding: 18px; min-width: 0; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.form-grid .wide { grid-column: 1 / -1; }
+label.field { display: block; font-weight: 700; font-size: .92rem; color: #344054; }
+input[type="text"], input[type="email"], input[type="number"], select { width: 100%; margin-top: 6px; border: 1px solid #b9c3d2; background: #fff; border-radius: 9px; padding: 10px 11px; color: #172033; }
+input:focus, select:focus, button:focus-visible { outline: 3px solid rgba(110,24,24,.2); outline-offset: 2px; border-color: var(--brand); }
+.field-note { color: var(--muted); font-size: .84rem; margin-top: 5px; }
+.subhead { margin: 20px 0 8px; font-size: 1rem; }
+.check-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+.check-row { display: flex; gap: 9px; align-items: flex-start; border: 1px solid #e0e5ec; border-radius: 9px; padding: 9px 10px; font-weight: 400; background: #fff; }
+.check-row input { margin-top: 3px; }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.project-list { display: grid; gap: 8px; margin-top: 9px; }
+.project-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto auto; gap: 7px; align-items: center; }
+.project-row input { margin: 0; }
+.project-add { display: flex; gap: 8px; margin-top: 10px; }
+.project-add input { margin: 0; }
+.empty-state { padding: 28px 16px; text-align: center; color: var(--muted); }
+.error-box { margin-top: 10px; padding: 10px 12px; border-radius: 9px; background: #fff2f2; color: var(--bad); border: 1px solid #f0c2c2; font-size: .9rem; }
+.placeholder-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; color: var(--muted); box-shadow: var(--shadow); }
+
+.settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.settings-card, .transfer-card, .validation-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 17px; box-shadow: var(--shadow); }
+.settings-card h2, .transfer-card h2 { margin: 0 0 12px; font-size: 1.05rem; }
+.settings-card .form-grid { grid-template-columns: 1fr; }
+.setting-checks { display: grid; gap: 8px; }
+.colour-row { display: grid; grid-template-columns: 54px minmax(0,1fr); gap: 8px; align-items: end; }
+.colour-row input[type="color"] { width: 54px; height: 42px; padding: 3px; border: 1px solid #b9c3d2; border-radius: 9px; background: #fff; }
+.validation-card { margin-bottom: 16px; padding: 12px 14px; }
+.validation-list { margin: 8px 0 0; display: grid; gap: 6px; }
+.validation-link { width: 100%; text-align: left; border: 1px solid #efc3c3; background: #fff7f7; color: var(--bad); border-radius: 8px; padding: 8px 10px; }
+.transfer-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.transfer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.file-input { display: none; }
+.notice { margin-bottom: 16px; border-radius: 10px; padding: 11px 13px; background: #edf3fb; border: 1px solid #c9d8ec; color: #30496c; min-height: 46px; }
+.notice[data-kind="success"] { background: #edf8f1; border-color: #b9dfc6; color: var(--ok); }
+.notice[data-kind="warning"] { background: #fff7e8; border-color: #efd4a0; color: var(--warn); }
+.notice[data-kind="error"] { background: #fff0f0; border-color: #efbcbc; color: var(--bad); }
+.token-hint { margin-top: 6px; font-size: .83rem; color: var(--muted); word-break: break-word; }
+@media (max-width: 820px) { .settings-grid, .transfer-grid { grid-template-columns: 1fr; } }
+
+@media (max-width: 820px) {
+  .topbar-inner { align-items: flex-start; flex-direction: column; }
+  .status-cluster { justify-content: flex-start; }
+  .two-pane { grid-template-columns: 1fr; }
+  .entity-list { border-right: 0; border-bottom: 1px solid var(--line); max-height: 260px; }
+  .form-grid, .check-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .shell { padding: 14px; }
+  .project-row { grid-template-columns: 1fr auto auto; }
+  .project-row .delete-project { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div><h1>PHSEvidence Configuration Editor</h1><p>Edit safely. Validate automatically. Download clean JSON files.</p></div>
+    <div class="status-cluster"><span id="saveStatus" class="status-pill">Loading…</span><span id="validationSummary" class="status-pill">Checking…</span><button id="undoBtn" class="toolbar-btn" type="button">Undo last change</button></div>
+  </div>
+</header>
+<div class="shell">
+  <nav class="tabs" aria-label="Editor sections">
+    <button id="tabTeaching" class="tab" type="button" aria-selected="true">Teaching Data</button>
+    <button id="tabSettings" class="tab" type="button" aria-selected="false">App Settings</button>
+    <button id="tabTransfer" class="tab" type="button" aria-selected="false">Import / Export</button>
+  </nav>
+  <section class="validation-card" aria-live="polite"><div id="validationDetails"></div></section>
+
+  <main>
+    <section id="teachingPanel" class="panel active">
+      <div class="version-row"><label class="field">Teaching data version<input id="teachingVersion" type="text"></label><div class="field-note">A label such as 2026-Term-4. This is separate from the automatic school year used by the evidence app.</div></div>
+      <section class="editor-section">
+        <div class="section-head"><div><h2>Teachers</h2><p>Teacher details and the classes they teach.</p></div><button id="addTeacherBtn" class="primary-btn" type="button">+ Add teacher</button></div>
+        <div class="two-pane"><div id="teacherList" class="entity-list"></div><div id="teacherEditor" class="editor-form"></div></div>
+      </section>
+      <section class="editor-section">
+        <div class="section-head"><div><h2>Classes / Subjects</h2><p>Class codes, display names and project lists.</p></div><button id="addClassBtn" class="primary-btn" type="button">+ Add class</button></div>
+        <div class="two-pane"><div id="classList" class="entity-list"></div><div id="classEditor" class="editor-form"></div></div>
+      </section>
+    </section>
+    <section id="settingsPanel" class="panel"></section>
+    <section id="transferPanel" class="panel">
+      <div id="transferNotice" class="notice" role="status" aria-live="polite">Your current configuration has not been changed by any import.</div>
+      <div class="transfer-grid">
+        <section class="transfer-card">
+          <h2>Import a starting point</h2>
+          <p class="field-note">A valid import replaces only the section you choose. Invalid files leave the current configuration untouched.</p>
+          <div class="transfer-actions">
+            <button id="importTeachingBtn" class="secondary-btn" type="button">Import teaching-data.json</button><input id="importTeachingInput" class="file-input" type="file" accept="application/json,.json">
+            <button id="importSettingsBtn" class="secondary-btn" type="button">Import app-settings.json</button><input id="importSettingsInput" class="file-input" type="file" accept="application/json,.json">
+            <button id="importBackupBtn" class="secondary-btn" type="button">Import full backup</button><input id="importBackupInput" class="file-input" type="file" accept="application/json,.json">
+          </div>
+        </section>
+        <section class="transfer-card">
+          <h2>Download replacement files</h2>
+          <p class="field-note">These are the two files you upload to the PHSEvidence repository.</p>
+          <div class="transfer-actions">
+            <button id="downloadTeachingBtn" class="primary-btn" type="button">Download teaching-data.json</button>
+            <button id="downloadSettingsBtn" class="primary-btn" type="button">Download app-settings.json</button>
+          </div>
+        </section>
+        <section class="transfer-card">
+          <h2>Portable backup</h2>
+          <p class="field-note">One file containing both configurations, suitable for moving this editor to another computer.</p>
+          <button id="downloadBackupBtn" class="secondary-btn" type="button">Download full backup</button>
+        </section>
+        <section class="transfer-card">
+          <h2>Restore built-in PHS defaults</h2>
+          <p class="field-note">Resets both configurations to the corrected built-in starting data. This action can be undone once.</p>
+          <button id="restoreDefaultsBtn" class="danger-btn" type="button">Restore built-in defaults</button>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+<script id="editor-core">
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (root) root.PHSEditorCore = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  const APPROVED_TOKENS = new Set(['year', 'teacher', 'class', 'student', 'project', 'timestamp']);
+
+  const BUILT_IN_TEACHING = {
+    configVersion: '2026-Term-4',
+    teachers: [
+      { code: 'RY', name: 'Mr Reynolds', email: 'ry@pukekohehigh.school.nz', classes: ['9TDET','9TTEC','10TTEC','10TDET','11TSPD','12TSPD','13TSPD','1TEGR','2TEGR','3TEGR','1TBLD','2TBLD','2BLDT'] },
+      { code: 'NCC', name: 'Mr Nicholls', email: 'ncc@pukekohehigh.school.nz', classes: ['1TEGR','2TEGR','3TEGR','9TTEC','10TTEC'] },
+      { code: 'KPC', name: 'Mr Knapman', email: 'kpc@pukekohehigh.school.nz', classes: ['9TDET','9TTEC','1TEGR','2TEGR','3TEGR'] },
+      { code: 'RNR', name: 'Mr Ranson', email: 'rnr@pukekohehigh.school.nz', classes: ['1TBLD','2TBLD','2BLDT','9TTEC','10TTEC'] },
+      { code: 'MSL', name: 'Mrs Mous', email: 'msl@pukekohehigh.school.nz', classes: ['9TTEC','10TTEC'] },
+      { code: 'CLC', name: 'Mrs Coull', email: 'clc@pukekohehigh.school.nz', classes: ['9TTEC','10TTEC'] },
+      { code: 'DVM', name: 'Mrs Devaney', email: 'dvm@pukekohehigh.school.nz', classes: ['9TDET','10TDET','11TSPD','12TSPD','13TSPD'] },
+      { code: 'BNM', name: 'Mrs M Bernarte', email: 'bnm@pukekohehigh.school.nz', classes: ['9FNT','10FNT','1TCAT'] },
+      { code: 'FLL', name: 'Mrs L Fulford', email: 'fll@pukekohehigh.school.nz', classes: ['9FNT','10FNT','2TCAT'] },
+      { code: 'JC', name: 'Mrs C Jacobs', email: 'jc@pukekohehigh.school.nz', classes: ['9FNT','2TCAT','3TCAT'] },
+      { code: 'MDT', name: 'Miss T Madelozo', email: 'mdt@pukekohehigh.school.nz', classes: ['10FNT','1TCAT','3TCAT'] },
+      { code: 'RNH', name: 'Miss Herasha Randhir', email: 'rnh@pukekohehigh.school.nz', classes: ['9FNT','10FNT','3TCAT','HOSPTR'] }
+    ],
+    classes: [
+      { code: '9TTEC', name: 'Year 9 Technology', projects: ['Electric Circuit','Photo Frame','Folding Stool','Matariki'] },
+      { code: '10TTEC', name: 'Year 10 Technology', projects: ['Pewter Casting','Modular Furniture','Picnic Table'] },
+      { code: '9TDET', name: 'Year 9 DET', projects: ['Own project'] },
+      { code: '10TDET', name: 'Year 10 DET', projects: ['Own project'] },
+      { code: '11TSPD', name: 'Level 1 SPD', projects: ['Spatial Design','Own project'] },
+      { code: '12TSPD', name: 'Level 2 SPD', projects: ['Spatial Design','Own project'] },
+      { code: '13TSPD', name: 'Level 3 SPD', projects: ['Spatial Design','Own project'] },
+      { code: '1TEGR', name: 'Level 1 Engineering', projects: ['Pencil Case','Marking Gauge','Own project'] },
+      { code: '2TEGR', name: 'Level 2 Engineering', projects: ['Tool Box','Machine Vice','Other / Own project'] },
+      { code: '3TEGR', name: 'Level 3 Engineering', projects: ['Handy Trolley','Sheet Metal Funnel','Own project'] },
+      { code: '1TBLD', name: 'Level 1 Building', projects: ['File Box','Tool Box','Planter Box','Other'] },
+      { code: '2TBLD', name: 'Level 2 Building', projects: ['Step Ladder','Cape Cod Rocker','Other'] },
+      { code: '2BLDT', name: 'Building Trades', projects: ['Small Sleepout'] },
+      { code: '9FNT', name: 'Year 9 Food & Nutrition', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] },
+      { code: '10FNT', name: 'Year 10 Food & Nutrition', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] },
+      { code: '1TCAT', name: 'Level 1 Catering', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] },
+      { code: '2TCAT', name: 'Level 2 Catering', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] },
+      { code: '3TCAT', name: 'Level 3 Catering', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] },
+      { code: 'HOSPTR', name: 'Hospitality / Trades', projects: ['Outcome 1','Outcome 2','Outcome 3','Outcome 4','Outcome 5'] }
+    ]
+  };
+
+  const BUILT_IN_APP_SETTINGS = {
+    schemaVersion: 1,
+    configVersion: '2026-Term-4',
+    school: { name: 'Pukekohe High School', shortName: 'PHS', faculty: 'Technology', appName: 'PHS Evidence Camera' },
+    branding: { logo: 'phs-shield.png', themeColour: '#6e1818', backgroundColour: '#090a0c', accentColour: '#f2b632' },
+    gateway: {
+      url: 'https://script.google.com/macros/s/AKfycbyIGKMYC74b2kG42gYs4QlZvLdl1IbhZuvGn1pputswfHvGPupHOkKj0XISJrnY3sf4uA/exec',
+      provider: 'apps-script',
+      destinationLabel: 'the teacher evidence inbox'
+    },
+    image: { maxDimension: 2000, jpegQuality: 0.88, includeLogo: true, includeDateTime: true, includeStudentName: true, includeTeacher: true, includeClass: true, includeProject: true },
+    features: { autoSendAfterStamp: true, allowUploadExistingPhoto: true, allowSaveCopy: true, allowInstallApp: true, rememberStudentName: true, showThemeButton: true },
+    routing: { classFolderPattern: '{class}-{teacher}', studentFolderPattern: '{student}', filenamePattern: 'PHS_{student}_{project}_{timestamp}' },
+    labels: { studentName: 'Student name', teacher: 'Teacher', class: 'Class', project: 'Project / task', takePhoto: 'Take Photo', send: 'Send', saveCopy: 'Save copy' }
+  };
+
+  function clone(value) {
+    if (typeof structuredClone === 'function') return structuredClone(value);
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function slugifyId(value) {
+    return String(value || '')
+      .trim().toLowerCase().normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '');
+  }
+
+  function issue(scope, key, message) { return { scope, key, message }; }
+  function result(errors, warnings = []) { return { valid: errors.length === 0, errors, warnings }; }
+  function text(value) { return String(value ?? '').trim(); }
+  function upper(value) { return text(value).toUpperCase(); }
+  function normalisedName(value) { return text(value).toLowerCase().replace(/\s+/g, ' '); }
+
+  function duplicateValues(values, normaliser = (v) => String(v).toLowerCase()) {
+    const seen = new Map();
+    const duplicates = [];
+    values.forEach((value) => {
+      const key = normaliser(value);
+      if (seen.has(key)) duplicates.push(value);
+      else seen.set(key, value);
+    });
+    return duplicates;
+  }
+
+  function validateTeachingData(raw) {
+    const errors = [];
+    const warnings = [];
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return result([issue('teaching', 'root', 'Teaching data must be a JSON object.')]);
+    if (!Array.isArray(raw.teachers)) errors.push(issue('teaching', 'teachers', 'teachers must be an array.'));
+    if (!Array.isArray(raw.classes)) errors.push(issue('teaching', 'classes', 'classes must be an array.'));
+    if (errors.length) return result(errors, warnings);
+
+    const classCodes = [];
+    const classSlugs = [];
+    const classCodeSet = new Set();
+    raw.classes.forEach((course, index) => {
+      const key = `class:${index}`;
+      if (!course || typeof course !== 'object' || Array.isArray(course)) {
+        errors.push(issue('class', key, `Class ${index + 1} must be an object.`));
+        return;
+      }
+      const code = upper(course.code);
+      const name = text(course.name);
+      if (!code) errors.push(issue('class', `${key}:code`, `Class ${index + 1} is missing a class code.`));
+      if (!name) errors.push(issue('class', `${key}:name`, `${code || `Class ${index + 1}`} is missing a display name.`));
+      const slug = slugifyId(code);
+      if (code) classCodes.push(code);
+      if (slug) classSlugs.push(slug);
+      if (code) classCodeSet.add(code);
+      if (!slug && code) errors.push(issue('class', `${key}:code`, `${code} does not generate a usable internal ID.`));
+      if (!Array.isArray(course.projects)) {
+        errors.push(issue('class', `${key}:projects`, `${code || `Class ${index + 1}`} projects must be an array.`));
+        return;
+      }
+      const names = [];
+      const projectIds = [];
+      course.projects.forEach((project, projectIndex) => {
+        const projectName = text(project);
+        if (!projectName) errors.push(issue('project', `${code}:${projectIndex}`, `${code || 'Class'} has an empty project name.`));
+        if (projectName) {
+          names.push(projectName);
+          projectIds.push(`${slug}_${slugifyId(projectName)}`);
+          if (!slugifyId(projectName)) errors.push(issue('project', `${code}:${projectIndex}`, `${code} project "${projectName}" does not generate a usable ID.`));
+        }
+      });
+      duplicateValues(names, normalisedName).forEach((dup) => errors.push(issue('project', code, `${code} has duplicate project name "${dup}".`)));
+      duplicateValues(projectIds).forEach((dup) => errors.push(issue('project', code, `${code} has a generated project ID collision: ${dup}.`)));
+    });
+
+    duplicateValues(classCodes).forEach((dup) => errors.push(issue('class', 'code', `Duplicate class code: ${dup}.`)));
+    duplicateValues(classSlugs).forEach((dup) => errors.push(issue('class', 'code', `Class code slug collision: ${dup}.`)));
+
+    const teacherCodes = [];
+    const teacherSlugs = [];
+    raw.teachers.forEach((teacher, index) => {
+      const key = `teacher:${index}`;
+      if (!teacher || typeof teacher !== 'object' || Array.isArray(teacher)) {
+        errors.push(issue('teacher', key, `Teacher ${index + 1} must be an object.`));
+        return;
+      }
+      const code = upper(teacher.code);
+      const name = text(teacher.name);
+      const email = text(teacher.email);
+      if (!code) errors.push(issue('teacher', `${key}:code`, `Teacher ${index + 1} is missing a teacher code.`));
+      if (!name) errors.push(issue('teacher', `${key}:name`, `${code || `Teacher ${index + 1}`} is missing a name.`));
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push(issue('teacher', `${key}:email`, `${name || code || `Teacher ${index + 1}`} has an invalid email address.`));
+      const slug = slugifyId(code);
+      if (code) teacherCodes.push(code);
+      if (slug) teacherSlugs.push(slug);
+      if (!Array.isArray(teacher.classes)) {
+        errors.push(issue('teacher', `${key}:classes`, `${name || code || `Teacher ${index + 1}`} classes must be an array.`));
+        return;
+      }
+      teacher.classes.forEach((classCode) => {
+        const ref = upper(classCode);
+        if (!classCodeSet.has(ref)) errors.push(issue('teacher', `${key}:classes`, `${name || code || 'Teacher'} references class ${ref}, but no class with that code exists.`));
+      });
+      const assignmentDups = duplicateValues(teacher.classes.map(upper));
+      assignmentDups.forEach((dup) => warnings.push(issue('teacher', `${key}:classes`, `${name || code || 'Teacher'} has duplicate class assignment ${dup}.`)));
+    });
+    duplicateValues(teacherCodes).forEach((dup) => errors.push(issue('teacher', 'code', `Duplicate teacher code: ${dup}.`)));
+    duplicateValues(teacherSlugs).forEach((dup) => errors.push(issue('teacher', 'code', `Teacher code slug collision: ${dup}.`)));
+    return result(errors, warnings);
+  }
+
+  function validatePattern(pattern, key, errors) {
+    const value = text(pattern);
+    if (!value) { errors.push(issue('routing', key, `${key} cannot be empty.`)); return; }
+    const tokens = [...value.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
+    tokens.filter((token) => !APPROVED_TOKENS.has(token)).forEach((token) => errors.push(issue('routing', key, `${key} contains unknown routing token {${token}}.`)));
+  }
+
+  function validateAppSettings(raw) {
+    const errors = [];
+    const warnings = [];
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return result([issue('settings', 'root', 'App settings must be a JSON object.')]);
+    if (raw.schemaVersion !== 1) errors.push(issue('settings', 'schemaVersion', 'schemaVersion must be 1.'));
+    const groups = ['school','branding','gateway','image','features','routing','labels'];
+    for (const group of groups) if (!raw[group] || typeof raw[group] !== 'object' || Array.isArray(raw[group])) errors.push(issue('settings', group, `Missing or invalid ${group} settings.`));
+    if (errors.some((e) => groups.includes(e.key))) return result(errors, warnings);
+
+    for (const key of ['name','shortName','faculty','appName']) if (!text(raw.school[key])) errors.push(issue('school', key, `School ${key} cannot be empty.`));
+    if (!text(raw.branding.logo)) errors.push(issue('branding', 'logo', 'Logo filename cannot be empty.'));
+    for (const key of ['themeColour','backgroundColour','accentColour']) if (!/^#[0-9a-fA-F]{6}$/.test(text(raw.branding[key]))) errors.push(issue('branding', key, `${key} must be a six-digit hex colour such as #6e1818.`));
+
+    const provider = text(raw.gateway.provider);
+    const gatewayUrl = text(raw.gateway.url);
+    if (!provider) errors.push(issue('gateway', 'provider', 'Gateway provider cannot be empty.'));
+    if (!text(raw.gateway.destinationLabel)) errors.push(issue('gateway', 'destinationLabel', 'Gateway destination label cannot be empty.'));
+    if (provider === 'apps-script') {
+      if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(gatewayUrl)) {
+        errors.push(issue('gateway', 'url', 'Apps Script gateway URL must be a deployed https://script.google.com/macros/s/.../exec URL.'));
+      }
+    } else if (!gatewayUrl) errors.push(issue('gateway', 'url', 'Gateway URL cannot be empty.'));
+
+    const maxDimension = Number(raw.image.maxDimension);
+    const quality = Number(raw.image.jpegQuality);
+    if (!Number.isFinite(maxDimension) || maxDimension < 800 || maxDimension > 6000) errors.push(issue('image', 'maxDimension', 'Maximum image dimension must be between 800 and 6000.'));
+    if (!Number.isFinite(quality) || quality <= 0 || quality > 1) errors.push(issue('image', 'jpegQuality', 'JPEG quality must be greater than 0 and no more than 1.'));
+    for (const key of ['includeLogo','includeDateTime','includeStudentName','includeTeacher','includeClass','includeProject']) if (typeof raw.image[key] !== 'boolean') errors.push(issue('image', key, `${key} must be true or false.`));
+    for (const key of ['autoSendAfterStamp','allowUploadExistingPhoto','allowSaveCopy','allowInstallApp','rememberStudentName','showThemeButton']) if (typeof raw.features[key] !== 'boolean') errors.push(issue('features', key, `${key} must be true or false.`));
+
+    validatePattern(raw.routing.classFolderPattern, 'classFolderPattern', errors);
+    validatePattern(raw.routing.studentFolderPattern, 'studentFolderPattern', errors);
+    validatePattern(raw.routing.filenamePattern, 'filenamePattern', errors);
+    for (const key of ['studentName','teacher','class','project','takePhoto','send','saveCopy']) if (!text(raw.labels[key])) errors.push(issue('labels', key, `Label ${key} cannot be empty.`));
+    return result(errors, warnings);
+  }
+
+  function validateState(state) {
+    const teaching = validateTeachingData(state && state.teachingData);
+    const settings = validateAppSettings(state && state.appSettings);
+    return result([...teaching.errors, ...settings.errors], [...teaching.warnings, ...settings.warnings]);
+  }
+
+  function normaliseTeachingImport(raw) {
+    const data = clone(raw);
+    const warnings = [];
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return { data, warnings };
+    if (Array.isArray(data.classes)) {
+      data.classes = data.classes.map((course) => ({
+        ...course,
+        code: upper(course && course.code),
+        name: text(course && course.name),
+        projects: Array.isArray(course && course.projects) ? course.projects.map(text) : course && course.projects
+      }));
+    }
+    if (Array.isArray(data.teachers)) {
+      data.teachers = data.teachers.map((teacher, index) => {
+        const classes = Array.isArray(teacher && teacher.classes) ? teacher.classes.map(upper) : teacher && teacher.classes;
+        if (!Array.isArray(classes)) return { ...teacher, code: upper(teacher && teacher.code), name: text(teacher && teacher.name), email: text(teacher && teacher.email), classes };
+        const seen = new Set();
+        const unique = [];
+        for (const code of classes) {
+          if (seen.has(code)) warnings.push(issue('teacher', `teacher:${index}:classes`, `${text(teacher.name) || upper(teacher.code) || 'Teacher'} had duplicate class assignment ${code}; duplicate removed.`));
+          else { seen.add(code); unique.push(code); }
+        }
+        return { ...teacher, code: upper(teacher && teacher.code), name: text(teacher && teacher.name), email: text(teacher && teacher.email), classes: unique };
+      });
+    }
+    return { data, warnings };
+  }
+
+  function mutationError(validation) {
+    const error = new Error(validation.errors.map((item) => item.message).join('\n'));
+    error.validation = validation;
+    return error;
+  }
+
+  function mutate(state, fn) {
+    const next = clone(state);
+    fn(next);
+    const validation = validateState(next);
+    if (!validation.valid) throw mutationError(validation);
+    return next;
+  }
+
+  function findTeacher(state, code) {
+    const wanted = upper(code);
+    return state.teachingData.teachers.find((teacher) => upper(teacher.code) === wanted);
+  }
+
+  function findClass(state, code) {
+    const wanted = upper(code);
+    return state.teachingData.classes.find((course) => upper(course.code) === wanted);
+  }
+
+  function uniqueCodes(values) {
+    const seen = new Set();
+    return values.map(upper).filter((value) => value && !seen.has(value) && seen.add(value));
+  }
+
+  function upsertTeacher(state, previousCode, teacher) {
+    return mutate(state, (next) => {
+      const record = {
+        code: upper(teacher && teacher.code),
+        name: text(teacher && teacher.name),
+        email: text(teacher && teacher.email),
+        classes: uniqueCodes(Array.isArray(teacher && teacher.classes) ? teacher.classes : [])
+      };
+      if (previousCode) {
+        const index = next.teachingData.teachers.findIndex((item) => upper(item.code) === upper(previousCode));
+        if (index < 0) throw new Error(`Teacher ${previousCode} was not found.`);
+        next.teachingData.teachers[index] = record;
+      } else {
+        next.teachingData.teachers.push(record);
+      }
+    });
+  }
+
+  function deleteTeacher(state, teacherCode) {
+    return mutate(state, (next) => {
+      const wanted = upper(teacherCode);
+      const before = next.teachingData.teachers.length;
+      next.teachingData.teachers = next.teachingData.teachers.filter((teacher) => upper(teacher.code) !== wanted);
+      if (next.teachingData.teachers.length === before) throw new Error(`Teacher ${wanted} was not found.`);
+    });
+  }
+
+  function setTeacherClass(state, teacherCode, classCode, checked) {
+    const wantedClass = upper(classCode);
+    if (!findClass(state, wantedClass)) throw new Error(`Class ${wantedClass} does not exist.`);
+    return mutate(state, (next) => {
+      const teacher = findTeacher(next, teacherCode);
+      if (!teacher) throw new Error(`Teacher ${upper(teacherCode)} was not found.`);
+      const current = uniqueCodes(Array.isArray(teacher.classes) ? teacher.classes : []);
+      if (checked) {
+        if (!current.includes(wantedClass)) current.push(wantedClass);
+        teacher.classes = current;
+      } else {
+        teacher.classes = current.filter((code) => code !== wantedClass);
+      }
+    });
+  }
+
+  function renameClassCode(state, oldCode, newCode) {
+    const oldValue = upper(oldCode);
+    const newValue = upper(newCode);
+    if (!oldValue || !newValue) throw new Error('Class code cannot be empty.');
+    if (!findClass(state, oldValue)) throw new Error(`Class ${oldValue} was not found.`);
+    const collision = state.teachingData.classes.some((course) => upper(course.code) === newValue && upper(course.code) !== oldValue);
+    if (collision) throw new Error(`Class ${newValue} already exists; class code collision.`);
+    return mutate(state, (next) => {
+      const course = findClass(next, oldValue);
+      course.code = newValue;
+      next.teachingData.teachers.forEach((teacher) => {
+        teacher.classes = uniqueCodes((teacher.classes || []).map((code) => upper(code) === oldValue ? newValue : code));
+      });
+    });
+  }
+
+  function upsertClass(state, previousCode, classRecord) {
+    const record = {
+      code: upper(classRecord && classRecord.code),
+      name: text(classRecord && classRecord.name),
+      projects: Array.isArray(classRecord && classRecord.projects) ? classRecord.projects.map(text) : []
+    };
+    if (!previousCode) {
+      return mutate(state, (next) => { next.teachingData.classes.push(record); });
+    }
+    let next = state;
+    if (upper(previousCode) !== record.code) next = renameClassCode(next, previousCode, record.code);
+    return mutate(next, (copy) => {
+      const course = findClass(copy, record.code);
+      if (!course) throw new Error(`Class ${record.code} was not found.`);
+      course.name = record.name;
+      course.projects = record.projects;
+    });
+  }
+
+  function deleteClass(state, classCode) {
+    const wanted = upper(classCode);
+    return mutate(state, (next) => {
+      const before = next.teachingData.classes.length;
+      next.teachingData.classes = next.teachingData.classes.filter((course) => upper(course.code) !== wanted);
+      if (next.teachingData.classes.length === before) throw new Error(`Class ${wanted} was not found.`);
+      next.teachingData.teachers.forEach((teacher) => {
+        teacher.classes = (teacher.classes || []).filter((code) => upper(code) !== wanted);
+      });
+    });
+  }
+
+  function addProject(state, classCode, projectName) {
+    return mutate(state, (next) => {
+      const course = findClass(next, classCode);
+      if (!course) throw new Error(`Class ${upper(classCode)} was not found.`);
+      course.projects.push(text(projectName));
+    });
+  }
+
+  function renameProject(state, classCode, index, name) {
+    return mutate(state, (next) => {
+      const course = findClass(next, classCode);
+      if (!course) throw new Error(`Class ${upper(classCode)} was not found.`);
+      if (!Number.isInteger(index) || index < 0 || index >= course.projects.length) throw new Error('Project index is out of range.');
+      course.projects[index] = text(name);
+    });
+  }
+
+  function deleteProject(state, classCode, index) {
+    return mutate(state, (next) => {
+      const course = findClass(next, classCode);
+      if (!course) throw new Error(`Class ${upper(classCode)} was not found.`);
+      if (!Number.isInteger(index) || index < 0 || index >= course.projects.length) throw new Error('Project index is out of range.');
+      course.projects.splice(index, 1);
+    });
+  }
+
+  function moveProject(state, classCode, index, delta) {
+    const course = findClass(state, classCode);
+    if (!course) throw new Error(`Class ${upper(classCode)} was not found.`);
+    const target = index + delta;
+    if (!Number.isInteger(index) || !Number.isInteger(delta) || index < 0 || index >= course.projects.length || target < 0 || target >= course.projects.length) return clone(state);
+    return mutate(state, (next) => {
+      const projects = findClass(next, classCode).projects;
+      const [value] = projects.splice(index, 1);
+      projects.splice(target, 0, value);
+    });
+  }
+
+  function tryTeachingImport(currentState, raw) {
+    const normalised = normaliseTeachingImport(raw);
+    const validation = validateTeachingData(normalised.data);
+    const warnings = [...normalised.warnings, ...validation.warnings];
+    if (!validation.valid) return { ok: false, state: clone(currentState), errors: validation.errors, warnings };
+    const next = clone(currentState);
+    next.teachingData = clone(normalised.data);
+    const whole = validateState(next);
+    if (!whole.valid) return { ok: false, state: clone(currentState), errors: whole.errors, warnings: [...warnings, ...whole.warnings] };
+    return { ok: true, state: next, errors: [], warnings };
+  }
+
+  function trySettingsImport(currentState, raw) {
+    const candidate = clone(raw);
+    const validation = validateAppSettings(candidate);
+    if (!validation.valid) return { ok: false, state: clone(currentState), errors: validation.errors, warnings: validation.warnings };
+    const next = clone(currentState);
+    next.appSettings = candidate;
+    const whole = validateState(next);
+    if (!whole.valid) return { ok: false, state: clone(currentState), errors: whole.errors, warnings: whole.warnings };
+    return { ok: true, state: next, errors: [], warnings: validation.warnings };
+  }
+
+  function tryBackupImport(currentState, raw) {
+    const formatErrors = [];
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) formatErrors.push(issue('backup', 'root', 'Backup must be a JSON object.'));
+    else {
+      if (raw.backupFormat !== 'phsevidence-config-editor-backup') formatErrors.push(issue('backup', 'backupFormat', 'This is not a PHSEvidence configuration editor backup.'));
+      if (raw.backupVersion !== 1) formatErrors.push(issue('backup', 'backupVersion', 'Unsupported backup version.'));
+      if (!raw.teachingData) formatErrors.push(issue('backup', 'teachingData', 'Backup is missing teachingData.'));
+      if (!raw.appSettings) formatErrors.push(issue('backup', 'appSettings', 'Backup is missing appSettings.'));
+    }
+    if (formatErrors.length) return { ok: false, state: clone(currentState), errors: formatErrors, warnings: [] };
+    const normalised = normaliseTeachingImport(raw.teachingData);
+    const teachingValidation = validateTeachingData(normalised.data);
+    const settingsValidation = validateAppSettings(raw.appSettings);
+    const errors = [...teachingValidation.errors, ...settingsValidation.errors];
+    const warnings = [...normalised.warnings, ...teachingValidation.warnings, ...settingsValidation.warnings];
+    if (errors.length) return { ok: false, state: clone(currentState), errors, warnings };
+    const next = { teachingData: clone(normalised.data), appSettings: clone(raw.appSettings) };
+    const whole = validateState(next);
+    if (!whole.valid) return { ok: false, state: clone(currentState), errors: whole.errors, warnings: [...warnings, ...whole.warnings] };
+    return { ok: true, state: next, errors: [], warnings };
+  }
+
+  function makeTeachingExport(state) { return clone(state.teachingData); }
+  function makeSettingsExport(state) { return clone(state.appSettings); }
+  function makeBackup(state, now = new Date()) {
+    return {
+      backupFormat: 'phsevidence-config-editor-backup',
+      backupVersion: 1,
+      savedAt: now.toISOString(),
+      teachingData: makeTeachingExport(state),
+      appSettings: makeSettingsExport(state)
+    };
+  }
+  function backupFilename(now = new Date()) {
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `PHSEvidence_Config_Backup_${year}-${month}-${day}.json`;
+  }
+
+  const STATE_STORAGE_KEY = 'phsevidence-config-editor-state-v1';
+  const UNDO_STORAGE_KEY = 'phsevidence-config-editor-undo-v1';
+
+  function createPersistence(storage) {
+    function available() { return !!storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function'; }
+    function read(key) {
+      if (!available()) return { ok: false, reason: 'storage' };
+      try { return { ok: true, value: storage.getItem(key) }; }
+      catch (error) { return { ok: false, reason: 'storage', error }; }
+    }
+    function write(key, value) {
+      if (!available()) return { ok: false, reason: 'storage' };
+      try { storage.setItem(key, JSON.stringify(value)); return { ok: true }; }
+      catch (error) { return { ok: false, reason: 'storage', error }; }
+    }
+    function remove(key) {
+      if (!available()) return { ok: false, reason: 'storage' };
+      try { storage.removeItem(key); return { ok: true }; }
+      catch (error) { return { ok: false, reason: 'storage', error }; }
+    }
+    function parseState(value) {
+      if (!value) return null;
+      try {
+        const parsed = JSON.parse(value);
+        return validateState(parsed).valid ? parsed : null;
+      } catch { return null; }
+    }
+    function loadInitial() {
+      const builtIn = createBuiltInState();
+      const entry = read(STATE_STORAGE_KEY);
+      if (!entry.ok) return { state: builtIn, source: 'built-in', persistenceAvailable: false };
+      const parsed = parseState(entry.value);
+      if (parsed) return { state: clone(parsed), source: 'local', persistenceAvailable: true };
+      return { state: builtIn, source: 'built-in', persistenceAvailable: true };
+    }
+    function save(state) {
+      const validation = validateState(state);
+      if (!validation.valid) return { ok: false, reason: 'validation', validation };
+      return write(STATE_STORAGE_KEY, state);
+    }
+    function saveUndo(state) {
+      const validation = validateState(state);
+      if (!validation.valid) return { ok: false, reason: 'validation', validation };
+      return write(UNDO_STORAGE_KEY, state);
+    }
+    function loadUndo() {
+      const entry = read(UNDO_STORAGE_KEY);
+      if (!entry.ok) return { ok: false, reason: 'storage', state: null, error: entry.error };
+      if (!entry.value) return { ok: true, state: null };
+      const parsed = parseState(entry.value);
+      return parsed ? { ok: true, state: clone(parsed) } : { ok: true, state: null };
+    }
+    function clearUndo() { return remove(UNDO_STORAGE_KEY); }
+    return { loadInitial, save, saveUndo, loadUndo, clearUndo };
+  }
+
+  function createBuiltInState() {
+    return clone({ teachingData: BUILT_IN_TEACHING, appSettings: BUILT_IN_APP_SETTINGS });
+  }
+
+  return {
+    APPROVED_TOKENS: [...APPROVED_TOKENS],
+    createBuiltInState,
+    clone,
+    slugifyId,
+    normaliseTeachingImport,
+    validateTeachingData,
+    validateAppSettings,
+    validateState,
+    upsertTeacher,
+    deleteTeacher,
+    setTeacherClass,
+    upsertClass,
+    renameClassCode,
+    deleteClass,
+    addProject,
+    renameProject,
+    deleteProject,
+    moveProject,
+    STATE_STORAGE_KEY,
+    UNDO_STORAGE_KEY,
+    createPersistence,
+    tryTeachingImport,
+    trySettingsImport,
+    tryBackupImport,
+    makeTeachingExport,
+    makeSettingsExport,
+    makeBackup,
+    backupFilename
+  };
+});
+</script>
+<script id="editor-app">
+(function () {
+  'use strict';
+  let browserStorage = null;
+  try { browserStorage = window.localStorage; } catch (error) { browserStorage = null; }
+  const persistence = PHSEditorCore.createPersistence(browserStorage);
+  const initial = persistence.loadInitial();
+  let editorState = initial.state;
+  let persistenceAvailable = initial.persistenceAvailable !== false;
+  let memoryUndo = null;
+  let draftErrors = new Map();
+  let draftValues = new Map();
+  let selectedTeacherCode = editorState.teachingData.teachers[0]?.code || '';
+  let selectedClassCode = editorState.teachingData.classes[0]?.code || '';
+  let newTeacherMode = false;
+  let newClassMode = false;
+  let activeTab = 'teaching';
+
+  const el = (id) => document.getElementById(id);
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function escapeAttr(value) { return escapeHtml(value); }
+  function fieldValue(key, fallback) { return draftValues.has(key) ? draftValues.get(key) : fallback; }
+  function errorText(key) {
+    const items = draftErrors.get(key) || [];
+    return items.length ? `<div class="error-box">${items.map((item) => escapeHtml(item.message)).join('<br>')}</div>` : '';
+  }
+  function normaliseSelection() {
+    if (!editorState.teachingData.teachers.some((t) => t.code === selectedTeacherCode)) selectedTeacherCode = editorState.teachingData.teachers[0]?.code || '';
+    if (!editorState.teachingData.classes.some((c) => c.code === selectedClassCode)) selectedClassCode = editorState.teachingData.classes[0]?.code || '';
+  }
+  function commitState(nextState, { captureUndo = true } = {}) {
+    if (captureUndo) {
+      memoryUndo = PHSEditorCore.clone(editorState);
+      persistence.saveUndo(editorState);
+    }
+    editorState = PHSEditorCore.clone(nextState);
+    const saved = persistence.save(editorState);
+    persistenceAvailable = saved.reason !== 'storage';
+    normaliseSelection();
+    renderAll();
+  }
+  function commitValidatedCandidate(nextState, draftKey) {
+    const validation = PHSEditorCore.validateState(nextState);
+    if (!validation.valid) {
+      draftErrors.set(draftKey, validation.errors);
+      renderValidation();
+      renderSaveStatus();
+      return false;
+    }
+    draftErrors.delete(draftKey);
+    draftValues.delete(draftKey);
+    commitState(nextState);
+    return true;
+  }
+  function recordMutationError(key, error, attemptedValue) {
+    const errors = error?.validation?.errors || [{ scope: 'editor', key, message: String(error?.message || error) }];
+    draftErrors.set(key, errors);
+    if (attemptedValue !== undefined) draftValues.set(key, attemptedValue);
+    renderValidation();
+    renderSaveStatus();
+  }
+  function undoLastChange() {
+    const stored = persistence.loadUndo();
+    const previous = memoryUndo || (stored.ok ? stored.state : null);
+    if (!previous) return;
+    editorState = PHSEditorCore.clone(previous);
+    memoryUndo = null;
+    draftErrors.clear();
+    draftValues.clear();
+    persistence.save(editorState);
+    persistence.clearUndo();
+    normaliseSelection();
+    renderAll();
+  }
+  function openConfirm(message, onConfirm) { if (window.confirm(message)) onConfirm(); }
+
+  function renderSaveStatus() {
+    if (draftErrors.size) el('saveStatus').textContent = 'Fix configuration errors to save locally.';
+    else if (!persistenceAvailable) el('saveStatus').textContent = 'Local saving unavailable — download a backup before closing.';
+    else el('saveStatus').textContent = 'Saved locally ✓';
+  }
+  function renderValidation() {
+    const base = PHSEditorCore.validateState(editorState);
+    const draft = [...draftErrors.values()].flat();
+    const problems = [...base.errors, ...draft];
+    const total = problems.length;
+    el('validationSummary').textContent = total ? `${total} problems need fixing` : 'Configuration valid ✓';
+    el('validationSummary').dataset.state = total ? 'error' : 'valid';
+    const details = el('validationDetails');
+    if (!total) {
+      details.innerHTML = '<strong>Configuration valid ✓</strong><div class="field-note">Both JSON files are safe to download.</div>';
+    } else {
+      details.innerHTML = `<strong>${total} problems need fixing</strong><div class="validation-list">${problems.map((problem, index) => `<button class="validation-link" type="button" data-issue-index="${index}">${escapeHtml(problem.message)}</button>`).join('')}</div>`;
+      details.querySelectorAll('[data-issue-index]').forEach((button) => button.addEventListener('click', () => focusIssue(problems[Number(button.dataset.issueIndex)])));
+    }
+    updateTransferButtons();
+  }
+  function renderTabs() {
+    for (const tab of ['teaching','settings','transfer']) {
+      const button = el(tab === 'teaching' ? 'tabTeaching' : tab === 'settings' ? 'tabSettings' : 'tabTransfer');
+      const panel = el(tab === 'teaching' ? 'teachingPanel' : tab === 'settings' ? 'settingsPanel' : 'transferPanel');
+      button.setAttribute('aria-selected', String(activeTab === tab));
+      panel.classList.toggle('active', activeTab === tab);
+    }
+  }
+  function renderTeachingVersion() {
+    const input = el('teachingVersion');
+    input.value = editorState.teachingData.configVersion || '';
+    input.onchange = () => {
+      const key = 'teaching:configVersion';
+      const next = PHSEditorCore.clone(editorState);
+      next.teachingData.configVersion = input.value.trim();
+      if (!commitValidatedCandidate(next, key)) {
+        draftValues.set(key, input.value);
+        input.value = fieldValue(key, input.value);
+      }
+    };
+  }
+  function renderTeacherList() {
+    const list = el('teacherList');
+    if (!editorState.teachingData.teachers.length) {
+      list.innerHTML = '<div class="empty-state">No teachers yet.</div>';
+      return;
+    }
+    list.innerHTML = editorState.teachingData.teachers.map((teacher) => `
+      <button type="button" class="entity-button ${teacher.code === selectedTeacherCode && !newTeacherMode ? 'active' : ''}" data-teacher="${escapeAttr(teacher.code)}">
+        <strong>${escapeHtml(teacher.code)} — ${escapeHtml(teacher.name)}</strong>
+        <span>${escapeHtml(teacher.email)} · ${teacher.classes.length} class${teacher.classes.length === 1 ? '' : 'es'}</span>
+      </button>`).join('');
+    list.querySelectorAll('[data-teacher]').forEach((button) => button.addEventListener('click', () => selectTeacher(button.dataset.teacher)));
+  }
+  function classAssignmentMarkup(teacher) {
+    return editorState.teachingData.classes.map((course) => `
+      <label class="check-row">
+        <input type="checkbox" data-teacher-class="${escapeAttr(course.code)}" ${teacher.classes.includes(course.code) ? 'checked' : ''}>
+        <span><strong>${escapeHtml(course.code)}</strong> — ${escapeHtml(course.name)}</span>
+      </label>`).join('');
+  }
+  function renderTeacherForm() {
+    const host = el('teacherEditor');
+    if (newTeacherMode) {
+      host.innerHTML = `
+        <h3>Add teacher</h3>
+        <div class="form-grid">
+          <label class="field">Teacher code<input id="newTeacherCode" type="text" autocomplete="off" placeholder="e.g. ABC"></label>
+          <label class="field">Teacher name<input id="newTeacherName" type="text" autocomplete="off" placeholder="e.g. Ms Example"></label>
+          <label class="field wide">Email<input id="newTeacherEmail" type="email" autocomplete="off" placeholder="name@pukekohehigh.school.nz"></label>
+        </div>
+        <h4 class="subhead">Classes taught</h4>
+        <div class="check-grid" id="newTeacherClasses">${classAssignmentMarkup({classes: []})}</div>
+        <div id="newTeacherError"></div>
+        <div class="form-actions"><button class="primary-btn" id="saveNewTeacher" type="button">Add teacher</button><button class="secondary-btn" id="cancelNewTeacher" type="button">Cancel</button></div>`;
+      el('saveNewTeacher').onclick = () => {
+        const classes = [...host.querySelectorAll('[data-teacher-class]:checked')].map((input) => input.dataset.teacherClass);
+        try {
+          const next = PHSEditorCore.upsertTeacher(editorState, null, { code: el('newTeacherCode').value, name: el('newTeacherName').value, email: el('newTeacherEmail').value, classes });
+          const code = el('newTeacherCode').value.trim().toUpperCase();
+          newTeacherMode = false; selectedTeacherCode = code; draftErrors.delete('newTeacher'); commitState(next);
+        } catch (error) {
+          el('newTeacherError').innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
+        }
+      };
+      el('cancelNewTeacher').onclick = () => { newTeacherMode = false; renderTeachingTab(); };
+      return;
+    }
+    const teacher = editorState.teachingData.teachers.find((t) => t.code === selectedTeacherCode);
+    if (!teacher) { host.innerHTML = '<div class="empty-state">Select a teacher or add a new one.</div>'; return; }
+    const codeKey = `teacher:${teacher.code}:code`, nameKey = `teacher:${teacher.code}:name`, emailKey = `teacher:${teacher.code}:email`;
+    host.innerHTML = `
+      <div class="form-grid">
+        <label class="field">Teacher code<input id="teacherCodeField" type="text" value="${escapeAttr(fieldValue(codeKey, teacher.code))}">${errorText(codeKey)}</label>
+        <label class="field">Teacher name<input id="teacherNameField" type="text" value="${escapeAttr(fieldValue(nameKey, teacher.name))}">${errorText(nameKey)}</label>
+        <label class="field wide">Email<input id="teacherEmailField" type="email" value="${escapeAttr(fieldValue(emailKey, teacher.email))}">${errorText(emailKey)}</label>
+      </div>
+      <h4 class="subhead">Classes taught</h4>
+      <div class="check-grid">${classAssignmentMarkup(teacher)}</div>
+      <div class="form-actions"><button class="danger-btn" id="deleteTeacherBtn" type="button">Delete teacher</button></div>`;
+
+    el('teacherCodeField').onchange = () => updateTeacherField(teacher, codeKey, 'code', el('teacherCodeField').value);
+    el('teacherNameField').onchange = () => updateTeacherField(teacher, nameKey, 'name', el('teacherNameField').value);
+    el('teacherEmailField').onchange = () => updateTeacherField(teacher, emailKey, 'email', el('teacherEmailField').value);
+    host.querySelectorAll('[data-teacher-class]').forEach((input) => input.addEventListener('change', () => {
+      try {
+        const next = PHSEditorCore.setTeacherClass(editorState, teacher.code, input.dataset.teacherClass, input.checked);
+        draftErrors.delete(`teacher:${teacher.code}:classes`);
+        commitState(next);
+      } catch (error) { recordMutationError(`teacher:${teacher.code}:classes`, error); input.checked = !input.checked; }
+    }));
+    el('deleteTeacherBtn').onclick = () => openConfirm(`Delete ${teacher.name} (${teacher.code})?`, () => {
+      const next = PHSEditorCore.deleteTeacher(editorState, teacher.code);
+      selectedTeacherCode = next.teachingData.teachers[0]?.code || '';
+      commitState(next);
+    });
+  }
+  function updateTeacherField(teacher, key, property, value) {
+    draftValues.set(key, value);
+    const record = { ...teacher, [property]: value };
+    try {
+      const next = PHSEditorCore.upsertTeacher(editorState, teacher.code, record);
+      const newCode = next.teachingData.teachers.find((t) => t.name === (property === 'name' ? value.trim() : teacher.name) && t.email === (property === 'email' ? value.trim() : teacher.email))?.code || (property === 'code' ? value.trim().toUpperCase() : teacher.code);
+      draftErrors.delete(key); draftValues.delete(key); selectedTeacherCode = newCode; commitState(next);
+    } catch (error) { recordMutationError(key, error, value); }
+  }
+  function selectTeacher(code) { selectedTeacherCode = code; newTeacherMode = false; renderTeachingTab(); }
+
+  function renderClassList() {
+    const list = el('classList');
+    if (!editorState.teachingData.classes.length) { list.innerHTML = '<div class="empty-state">No classes yet.</div>'; return; }
+    list.innerHTML = editorState.teachingData.classes.map((course) => {
+      const count = editorState.teachingData.teachers.filter((teacher) => teacher.classes.includes(course.code)).length;
+      return `<button type="button" class="entity-button ${course.code === selectedClassCode && !newClassMode ? 'active' : ''}" data-class="${escapeAttr(course.code)}"><strong>${escapeHtml(course.code)} — ${escapeHtml(course.name)}</strong><span>${course.projects.length} project${course.projects.length === 1 ? '' : 's'} · ${count} teacher${count === 1 ? '' : 's'}</span></button>`;
+    }).join('');
+    list.querySelectorAll('[data-class]').forEach((button) => button.addEventListener('click', () => selectClass(button.dataset.class)));
+  }
+  function renderClassForm() {
+    const host = el('classEditor');
+    if (newClassMode) {
+      host.innerHTML = `
+        <h3>Add class / subject</h3>
+        <div class="form-grid"><label class="field">Class code<input id="newClassCode" type="text" placeholder="e.g. 11TSPD"></label><label class="field">Display name<input id="newClassName" type="text" placeholder="e.g. Level 1 SPD"></label></div>
+        <label class="field wide" style="margin-top:14px">First project<input id="newClassProject" type="text" placeholder="e.g. Spatial Design"></label>
+        <div id="newClassError"></div>
+        <div class="form-actions"><button class="primary-btn" id="saveNewClass" type="button">Add class</button><button class="secondary-btn" id="cancelNewClass" type="button">Cancel</button></div>`;
+      el('saveNewClass').onclick = () => {
+        const firstProject = el('newClassProject').value.trim();
+        try {
+          const next = PHSEditorCore.upsertClass(editorState, null, { code: el('newClassCode').value, name: el('newClassName').value, projects: firstProject ? [firstProject] : [] });
+          selectedClassCode = el('newClassCode').value.trim().toUpperCase(); newClassMode = false; commitState(next);
+        } catch (error) { el('newClassError').innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`; }
+      };
+      el('cancelNewClass').onclick = () => { newClassMode = false; renderTeachingTab(); };
+      return;
+    }
+    const course = editorState.teachingData.classes.find((c) => c.code === selectedClassCode);
+    if (!course) { host.innerHTML = '<div class="empty-state">Select a class or add a new one.</div>'; return; }
+    const codeKey = `class:${course.code}:code`, nameKey = `class:${course.code}:name`;
+    host.innerHTML = `
+      <div class="form-grid"><label class="field">Class code<input id="classCodeField" type="text" value="${escapeAttr(fieldValue(codeKey, course.code))}">${errorText(codeKey)}</label><label class="field">Display name<input id="classNameField" type="text" value="${escapeAttr(fieldValue(nameKey, course.name))}">${errorText(nameKey)}</label></div>
+      <h4 class="subhead">Projects</h4>
+      <div class="project-list">${course.projects.length ? course.projects.map((project, index) => projectRowMarkup(course, project, index)).join('') : '<div class="empty-state">No projects yet. Add one below.</div>'}</div>
+      <div class="project-add"><input id="newProjectField" type="text" placeholder="Add project or task"><button id="addProjectBtn" class="secondary-btn" type="button">Add project</button></div>
+      <div class="form-actions"><button class="danger-btn" id="deleteClassBtn" type="button">Delete class</button></div>`;
+    el('classCodeField').onchange = () => {
+      const value = el('classCodeField').value; draftValues.set(codeKey, value);
+      try {
+        const next = PHSEditorCore.renameClassCode(editorState, course.code, value);
+        selectedClassCode = value.trim().toUpperCase(); draftErrors.delete(codeKey); draftValues.delete(codeKey); commitState(next);
+      } catch (error) { recordMutationError(codeKey, error, value); }
+    };
+    el('classNameField').onchange = () => {
+      const value = el('classNameField').value; draftValues.set(nameKey, value);
+      try {
+        const next = PHSEditorCore.upsertClass(editorState, course.code, { ...course, name: value });
+        draftErrors.delete(nameKey); draftValues.delete(nameKey); commitState(next);
+      } catch (error) { recordMutationError(nameKey, error, value); }
+    };
+    wireProjectRows(course);
+    el('addProjectBtn').onclick = () => {
+      const value = el('newProjectField').value;
+      try { commitState(PHSEditorCore.addProject(editorState, course.code, value)); }
+      catch (error) { recordMutationError(`project:${course.code}:new`, error, value); el('newProjectField').focus(); }
+    };
+    el('deleteClassBtn').onclick = () => {
+      const affected = editorState.teachingData.teachers.filter((teacher) => teacher.classes.includes(course.code));
+      const message = affected.length ? `${course.code} is assigned to ${affected.length} teacher${affected.length === 1 ? '' : 's'}. Deleting it will remove those teacher assignments as well.` : `Delete ${course.code}?`;
+      openConfirm(message, () => { const next = PHSEditorCore.deleteClass(editorState, course.code); selectedClassCode = next.teachingData.classes[0]?.code || ''; commitState(next); });
+    };
+  }
+  function projectRowMarkup(course, project, index) {
+    const key = `project:${course.code}:${index}`;
+    return `<div class="project-row"><input type="text" data-project-index="${index}" value="${escapeAttr(fieldValue(key, project))}" aria-label="Project ${index + 1}"><button class="icon-btn move-project" type="button" data-move="-1" data-index="${index}" aria-label="Move project up">↑</button><button class="icon-btn move-project" type="button" data-move="1" data-index="${index}" aria-label="Move project down">↓</button><button class="danger-btn delete-project" type="button" data-delete-project="${index}">Delete</button>${errorText(key)}</div>`;
+  }
+  function wireProjectRows(course) {
+    el('classEditor').querySelectorAll('[data-project-index]').forEach((input) => input.addEventListener('change', () => {
+      const index = Number(input.dataset.projectIndex), key = `project:${course.code}:${index}`; draftValues.set(key, input.value);
+      try { const next = PHSEditorCore.renameProject(editorState, course.code, index, input.value); draftErrors.delete(key); draftValues.delete(key); commitState(next); }
+      catch (error) { recordMutationError(key, error, input.value); }
+    }));
+    el('classEditor').querySelectorAll('.move-project').forEach((button) => button.addEventListener('click', () => {
+      commitState(PHSEditorCore.moveProject(editorState, course.code, Number(button.dataset.index), Number(button.dataset.move)));
+    }));
+    el('classEditor').querySelectorAll('[data-delete-project]').forEach((button) => button.addEventListener('click', () => {
+      const index = Number(button.dataset.deleteProject); openConfirm(`Delete project “${course.projects[index]}”?`, () => commitState(PHSEditorCore.deleteProject(editorState, course.code, index)));
+    }));
+  }
+  function selectClass(code) { selectedClassCode = code; newClassMode = false; renderTeachingTab(); }
+
+  function getPath(object, path) {
+    return path.split('.').reduce((value, part) => value?.[part], object);
+  }
+  function setPath(object, path, value) {
+    const parts = path.split('.');
+    const final = parts.pop();
+    const target = parts.reduce((value, part) => value[part], object);
+    target[final] = value;
+  }
+  function settingId(path) { return `setting-${path.replace(/\./g, '-')}`; }
+  function settingDraftKey(path) { return `settings:${path}`; }
+  function settingValue(path) { return fieldValue(settingDraftKey(path), getPath(editorState.appSettings, path)); }
+  function settingText(path, label, type = 'text', attrs = '') {
+    const key = settingDraftKey(path);
+    return `<label class="field">${escapeHtml(label)}<input id="${settingId(path)}" data-setting-path="${escapeAttr(path)}" type="${type}" value="${escapeAttr(settingValue(path))}" ${attrs}>${errorText(key)}</label>`;
+  }
+  function settingCheck(path, label) {
+    return `<label class="check-row"><input id="${settingId(path)}" type="checkbox" data-setting-check="${escapeAttr(path)}" ${getPath(editorState.appSettings, path) ? 'checked' : ''}><span>${escapeHtml(label)}</span></label>`;
+  }
+  function colourField(path, label) {
+    const value = String(settingValue(path) || '');
+    const safeColour = /^#[0-9a-fA-F]{6}$/.test(value) ? value : String(getPath(editorState.appSettings, path));
+    const key = settingDraftKey(path);
+    return `<label class="field">${escapeHtml(label)}<span class="colour-row"><input type="color" data-colour-picker="${escapeAttr(path)}" value="${escapeAttr(safeColour)}"><input id="${settingId(path)}" data-setting-path="${escapeAttr(path)}" type="text" value="${escapeAttr(value)}"></span>${errorText(key)}</label>`;
+  }
+  function updateSetting(path, value) {
+    const key = settingDraftKey(path);
+    draftValues.set(key, value);
+    const next = PHSEditorCore.clone(editorState);
+    let parsed = value;
+    if (path === 'image.maxDimension') parsed = Number(value);
+    if (path === 'image.jpegQuality') parsed = Number(value);
+    setPath(next.appSettings, path, parsed);
+    if (!commitValidatedCandidate(next, key)) draftValues.set(key, value);
+  }
+  function renderSettingsTab() {
+    const settings = el('settingsPanel');
+    settings.innerHTML = `
+      <div class="version-row">${settingText('configVersion', 'App settings version')}</div>
+      <div class="settings-grid">
+        <section class="settings-card"><h2>School</h2><div class="form-grid">${settingText('school.name','School name')}${settingText('school.shortName','Short name')}${settingText('school.faculty','Faculty')}${settingText('school.appName','App name')}</div></section>
+        <section class="settings-card"><h2>Branding</h2><div class="form-grid">${settingText('branding.logo','Logo filename')}${colourField('branding.themeColour','Theme colour')}${colourField('branding.backgroundColour','Background colour')}${colourField('branding.accentColour','Accent colour')}</div></section>
+        <section class="settings-card"><h2>Gateway</h2><div class="form-grid">${settingText('gateway.url','Gateway URL')}${settingText('gateway.provider','Provider')}${settingText('gateway.destinationLabel','Destination label')}</div></section>
+        <section class="settings-card"><h2>Image</h2><div class="form-grid">${settingText('image.maxDimension','Maximum image dimension','number','min="800" max="6000" step="1"')}${settingText('image.jpegQuality','JPEG quality','number','min="0.01" max="1" step="0.01"')}</div><div class="setting-checks" style="margin-top:12px">${settingCheck('image.includeLogo','Include logo')}${settingCheck('image.includeDateTime','Include date/time')}${settingCheck('image.includeStudentName','Include student name')}${settingCheck('image.includeTeacher','Include teacher')}${settingCheck('image.includeClass','Include class')}${settingCheck('image.includeProject','Include project')}</div></section>
+        <section class="settings-card"><h2>Features</h2><div class="setting-checks">${settingCheck('features.autoSendAfterStamp','Auto-send after stamp')}${settingCheck('features.allowUploadExistingPhoto','Allow existing photo upload')}${settingCheck('features.allowSaveCopy','Allow save copy')}${settingCheck('features.allowInstallApp','Allow install app')}${settingCheck('features.rememberStudentName','Remember student name')}${settingCheck('features.showThemeButton','Show theme button')}</div></section>
+        <section class="settings-card"><h2>Routing</h2><div class="form-grid">${settingText('routing.classFolderPattern','Class folder pattern')}${settingText('routing.studentFolderPattern','Student folder pattern')}${settingText('routing.filenamePattern','Filename pattern')}</div><div class="token-hint">Allowed tokens: {year} {teacher} {class} {student} {project} {timestamp}</div></section>
+        <section class="settings-card"><h2>Labels</h2><div class="form-grid">${settingText('labels.studentName','Student name')}${settingText('labels.teacher','Teacher')}${settingText('labels.class','Class')}${settingText('labels.project','Project / task')}${settingText('labels.takePhoto','Take Photo')}${settingText('labels.send','Send')}${settingText('labels.saveCopy','Save copy')}</div></section>
+      </div>`;
+    settings.querySelectorAll('[data-setting-path]').forEach((input) => input.addEventListener('change', () => updateSetting(input.dataset.settingPath, input.value)));
+    settings.querySelectorAll('[data-setting-check]').forEach((input) => input.addEventListener('change', () => {
+      const path = input.dataset.settingCheck, key = settingDraftKey(path), next = PHSEditorCore.clone(editorState);
+      setPath(next.appSettings, path, input.checked);
+      draftErrors.delete(key); draftValues.delete(key); commitState(next);
+    }));
+    settings.querySelectorAll('[data-colour-picker]').forEach((input) => input.addEventListener('input', () => {
+      const path = input.dataset.colourPicker;
+      const textInput = el(settingId(path));
+      textInput.value = input.value;
+      updateSetting(path, input.value);
+    }));
+  }
+
+  function updateTransferButtons() {
+    const valid = PHSEditorCore.validateState(editorState).valid && draftErrors.size === 0;
+    for (const id of ['downloadTeachingBtn','downloadSettingsBtn','downloadBackupBtn']) {
+      const button = el(id); if (button) button.disabled = !valid;
+    }
+  }
+  function showNotice(message, kind = 'info') {
+    const region = el('transferNotice');
+    region.dataset.kind = kind;
+    region.textContent = message;
+  }
+  function showImportProblems(filename, errors = [], warnings = []) {
+    if (errors.length) { showNotice(`${filename}: ${errors.map((item) => item.message).join(' | ')}`, 'error'); return; }
+    if (warnings.length) { showNotice(`${filename}: ${warnings.map((item) => item.message).join(' | ')}`, 'warning'); return; }
+    showNotice(`${filename} imported successfully.`, 'success');
+  }
+  async function handleImport(kind, file) {
+    if (!file) return;
+    let raw;
+    try { raw = JSON.parse(await file.text()); }
+    catch (error) { showNotice(`Could not read ${file.name} as JSON.`, 'error'); return; }
+    const result = kind === 'teaching'
+      ? PHSEditorCore.tryTeachingImport(editorState, raw)
+      : kind === 'settings'
+        ? PHSEditorCore.trySettingsImport(editorState, raw)
+        : PHSEditorCore.tryBackupImport(editorState, raw);
+    if (!result.ok) { showImportProblems(file.name, result.errors, result.warnings); return; }
+    draftErrors.clear(); draftValues.clear();
+    commitState(result.state);
+    showImportProblems(file.name, [], result.warnings);
+  }
+  function downloadJson(filename, value) {
+    let url = '';
+    let anchor = null;
+    try {
+      const blob = new Blob([JSON.stringify(value, null, 2) + '\n'], { type: 'application/json' });
+      url = URL.createObjectURL(blob);
+      anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      showNotice(`Download started: ${filename}.`, 'success');
+      return true;
+    } catch (error) {
+      showNotice(`Could not download ${filename}. Your configuration is still saved; try the download again.`, 'error');
+      return false;
+    } finally {
+      if (anchor) anchor.remove();
+      if (url) setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+  }
+  function restoreBuiltInDefaults() {
+    openConfirm('Restore the built-in PHS defaults for both teaching data and app settings? You can Undo this once.', () => {
+      draftErrors.clear(); draftValues.clear();
+      commitState(PHSEditorCore.createBuiltInState(), { captureUndo: true });
+      showNotice('Built-in PHS defaults restored. Use Undo if you want to return to the previous configuration.', 'success');
+    });
+  }
+  function focusIssue(problem) {
+    const settingsScopes = new Set(['settings','school','branding','gateway','image','features','routing','labels']);
+    if (settingsScopes.has(problem.scope)) {
+      activeTab = 'settings'; renderTabs(); renderSettingsTab();
+      const id = problem.scope === 'settings' ? settingId(problem.key) : settingId(`${problem.scope}.${problem.key}`);
+      const target = el(id); if (target) { target.focus(); target.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      return;
+    }
+    activeTab = 'teaching'; renderTabs();
+    const target = problem.scope === 'teacher' ? el('teacherEditor') : problem.scope === 'class' || problem.scope === 'project' ? el('classEditor') : el('teachingPanel');
+    if (target) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  function renderImportExportTab() { updateTransferButtons(); }
+
+  function renderTeachingTab() {
+    normaliseSelection();
+    renderTeachingVersion();
+    renderTeacherList();
+    renderTeacherForm();
+    renderClassList();
+    renderClassForm();
+  }
+  function renderAll() {
+    renderTabs();
+    renderTeachingTab();
+    renderSettingsTab();
+    renderImportExportTab();
+    renderSaveStatus();
+    renderValidation();
+    const stored = persistence.loadUndo();
+    el('undoBtn').disabled = !memoryUndo && !(stored.ok && stored.state);
+  }
+
+  el('tabTeaching').onclick = () => { activeTab = 'teaching'; renderTabs(); };
+  el('tabSettings').onclick = () => { activeTab = 'settings'; renderTabs(); };
+  el('tabTransfer').onclick = () => { activeTab = 'transfer'; renderTabs(); };
+  el('undoBtn').onclick = undoLastChange;
+  el('addTeacherBtn').onclick = () => { newTeacherMode = true; renderTeachingTab(); };
+  el('addClassBtn').onclick = () => { newClassMode = true; renderTeachingTab(); };
+  el('importTeachingBtn').onclick = () => el('importTeachingInput').click();
+  el('importSettingsBtn').onclick = () => el('importSettingsInput').click();
+  el('importBackupBtn').onclick = () => el('importBackupInput').click();
+  el('importTeachingInput').onchange = (event) => { handleImport('teaching', event.target.files?.[0]); event.target.value = ''; };
+  el('importSettingsInput').onchange = (event) => { handleImport('settings', event.target.files?.[0]); event.target.value = ''; };
+  el('importBackupInput').onchange = (event) => { handleImport('backup', event.target.files?.[0]); event.target.value = ''; };
+  el('downloadTeachingBtn').onclick = () => downloadJson('teaching-data.json', PHSEditorCore.makeTeachingExport(editorState));
+  el('downloadSettingsBtn').onclick = () => downloadJson('app-settings.json', PHSEditorCore.makeSettingsExport(editorState));
+  el('downloadBackupBtn').onclick = () => {
+    const now = new Date();
+    const backupPrefix = 'PHSEvidence_Config_Backup_';
+    const filename = PHSEditorCore.backupFilename(now);
+    if (!filename.startsWith(backupPrefix)) throw new Error('Unexpected backup filename.');
+    downloadJson(filename, PHSEditorCore.makeBackup(editorState, now));
+  };
+  el('restoreDefaultsBtn').onclick = restoreBuiltInDefaults;
+  renderAll();
+})();
+</script>
+</body>
+</html>
