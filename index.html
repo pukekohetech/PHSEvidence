@@ -1009,7 +1009,7 @@ button, input, select { font: inherit; }
   </section>
 </div>
 
-<script src="./config-loader.js?v=2"></script>
+<script src="./config-loader.js?v=3"></script>
 <script>
 /**************************************************************
  *  Pukekohe HS – Evidence Stamper (Android-safe Camera + Shield)
@@ -1369,33 +1369,14 @@ function loadState() {
  * ============================================================*/
 async function loadSelections() {
   populateTeachers();
-  populateSubjects();
   const state = loadState();
 
-  if (state) {
-    subjectSelect.value = PHSConfigLoader.chooseValidSelection(
-      state.subjectId,
-      selections.subjects.map((subject) => subject.id)
-    );
-    populateProjects(subjectSelect.value);
-    projectSelect.value = PHSConfigLoader.chooseValidSelection(
-      state.projectId,
-      [
-        ...selections.projects
-          .filter((project) => project.subjectId === subjectSelect.value)
-          .map((project) => project.id),
-        '__custom'
-      ]
-    );
-    teacherSelect.value = PHSConfigLoader.chooseValidSelection(
-      state.teacherId,
-      selections.teachers.map((teacher) => teacher.id)
-    );
-    updateTeacherFromSelect();
-    customProjectGroup.style.display = projectSelect.value === '__custom' ? '' : 'none';
-  } else {
-    populateProjects(subjectSelect.value);
-  }
+  teacherSelect.value = PHSConfigLoader.chooseValidSelection(
+    state?.teacherId || '',
+    selections.teachers.map((teacher) => teacher.id)
+  );
+  updateTeacherFromSelect();
+  applyTeacherSelection(state?.subjectId || '', state?.projectId || '');
 
   renderTeacherList();
   updateOverlay();
@@ -1425,13 +1406,29 @@ function updateTeacherFromSelect() {
 }
 
 // ---------- Subjects
-function populateSubjects() {
+function populateSubjects(subjects, selectedSubjectId = '') {
   subjectSelect.innerHTML = "";
-  selections.subjects.forEach((s) =>
-    subjectSelect.appendChild(new Option(s.label, s.id))
+  subjects.forEach((subject) =>
+    subjectSelect.appendChild(new Option(subject.label, subject.id))
   );
+  subjectSelect.value = PHSConfigLoader.chooseValidSelection(
+    selectedSubjectId,
+    subjects.map((subject) => subject.id)
+  );
+}
 
-  subjectSelect.value = selections.subjects[0]?.id || "";
+function applyTeacherSelection(preferredSubjectId = subjectSelect.value, preferredProjectId = projectSelect.value) {
+  const resolved = PHSConfigLoader.resolveTeacherSelections(
+    selections,
+    teacherSelect.value,
+    preferredSubjectId,
+    preferredProjectId
+  );
+  populateSubjects(resolved.subjects, resolved.subjectId);
+  populateProjects(resolved.subjectId);
+  if (resolved.projectId) projectSelect.value = resolved.projectId;
+  customProjectGroup.style.display = projectSelect.value === '__custom' ? '' : 'none';
+  return resolved;
 }
 
 // ---------- Projects
@@ -2479,7 +2476,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   nameInput.addEventListener("input", updateOverlay);
 
   teacherSelect.addEventListener("change", () => {
+    const previousSubjectId = subjectSelect.value;
+    const previousProjectId = projectSelect.value;
     updateTeacherFromSelect();
+    applyTeacherSelection(previousSubjectId, previousProjectId);
     updateOverlay();
   });
 

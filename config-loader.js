@@ -279,6 +279,32 @@
     return values.includes(savedValue) ? savedValue : (values[0] || '');
   }
 
+  function getSubjectsForTeacher(teaching, teacherId) {
+    const teacher = (teaching?.teachers || []).find((item) => item.id === teacherId);
+    if (!teacher) return [];
+    const subjectsById = new Map((teaching?.subjects || []).map((subject) => [subject.id, subject]));
+    return (teacher.subjects || [])
+      .map((subjectId) => subjectsById.get(subjectId))
+      .filter(Boolean);
+  }
+
+  function resolveTeacherSelections(teaching, teacherId, preferredSubjectId = '', preferredProjectId = '') {
+    const subjects = getSubjectsForTeacher(teaching, teacherId);
+    const subjectId = chooseValidSelection(
+      preferredSubjectId,
+      subjects.map((subject) => subject.id)
+    );
+    const projectIds = subjectId
+      ? (teaching?.projects || [])
+          .filter((project) => project.subjectId === subjectId)
+          .map((project) => project.id)
+      : [];
+    const projectId = subjectId
+      ? chooseValidSelection(preferredProjectId, [...projectIds, '__custom'])
+      : '';
+    return { subjects, subjectId, projectId };
+  }
+
   async function defaultFetchJson(url) {
     const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}`, {
       cache: 'no-store',
@@ -381,6 +407,8 @@
     buildRoutingMeta,
     buildEvidenceFilename,
     chooseValidSelection,
+    getSubjectsForTeacher,
+    resolveTeacherSelections,
     loadConfiguration,
     SETTINGS_LKG_KEY,
     TEACHING_LKG_KEY

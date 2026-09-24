@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phs-evidence-camera-v12-config-json';
+const CACHE_VERSION = 'phs-evidence-camera-v13-teacher-filter';
 const CACHE_PREFIX = 'phs-evidence-camera-';
 const CONFIG_PATHS = new Set([
   '/PHSEvidence/app-settings.json',
@@ -8,7 +8,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest?v=8',
-  './config-loader.js?v=2',
+  './config-loader.js?v=3',
   './pwa.js?v=8',
   './phs-shield.png',
   './icon-192.png',

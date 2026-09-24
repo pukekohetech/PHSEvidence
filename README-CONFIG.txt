@@ -17,6 +17,7 @@ Do not edit index.html for ordinary teacher/class/project changes.
 
 Useful notes:
 - Keep teacher and class codes unique. The app generates the internal IDs automatically.
+- Each teacher's classes list controls exactly which Class/Subject options students see after choosing that teacher; the order in the teacher entry is preserved.
 - configVersion is shown in Settings and is useful for confirming that a device has picked up an update.
 - The installed PWA name and icons are still controlled by manifest.webmanifest; normal teaching-data changes do not require editing it.
 - On the first deployment of this refactor, upload all files in the release package. After that, most routine updates only require teaching-data.json or app-settings.json.
