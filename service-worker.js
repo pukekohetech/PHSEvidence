@@ -1,10 +1,10 @@
-const CACHE_VERSION = 'phs-evidence-camera-v10-drive-auto-root';
+const CACHE_VERSION = 'phs-evidence-camera-v11-gateway-v2';
 const CACHE_PREFIX = 'phs-evidence-camera-';
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest?v=6',
-  './pwa.js?v=6',
+  './manifest.webmanifest?v=7',
+  './pwa.js?v=7',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-192.png',
