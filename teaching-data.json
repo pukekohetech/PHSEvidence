@@ -1,7 +1,7 @@
 {
   "configVersion": "2026-Term-4",
   "teachers": [
-    {"code":"RY","name":"Mr Reynolds","email":"ry@pukekohehigh.school.nz","classes":["9TDET","9TTEC","10TTEC","9TDET","10TDET","11TDET","12TDET","13TDET","1TEGR","2TEGR","3TEGR","1TBLD","2TBLD","2BLDT"]},
+    {"code":"RY","name":"Mr Reynolds","email":"ry@pukekohehigh.school.nz","classes":["9TTEC","10TTEC","9TDET","10TDET","11TDET","12TDET","13TDET","1TEGR","2TEGR","3TEGR","1TBLD","2TBLD","2BLDT"]},
     {"code":"NCC","name":"Mr Nicholls","email":"ncc@pukekohehigh.school.nz","classes":["1TEGR","2TEGR","3TEGR","9TTEC","10TTEC"]},
     {"code":"KPC","name":"Mr Knapman","email":"kpc@pukekohehigh.school.nz","classes":["9TDET","9TTEC","1TEGR","2TEGR","3TEGR"]},
     {"code":"RNR","name":"Mr Ranson","email":"rnr@pukekohehigh.school.nz","classes":["1TBLD","2TBLD","2BLDT","9TTEC","10TTEC"]},
