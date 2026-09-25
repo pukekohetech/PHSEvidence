@@ -7,7 +7,15 @@
       "email": "ry@pukekohehigh.school.nz",
       "classes": [
         "9TDET",
-        "1TFNT",
+        "9TTEC",
+        "10TTEC",
+        "10TDET",
+        "11TSPD",
+        "12TSPD",
+        "13TSPD",
+        "1TEGR",
+        "2TEGR",
+        "3TEGR",
         "1TBLD",
         "2TBLD",
         "2BLDT"
@@ -21,7 +29,8 @@
         "1TEGR",
         "2TEGR",
         "3TEGR",
-        "1TFNT"
+        "9TTEC",
+        "10TTEC"
       ]
     },
     {
@@ -30,7 +39,7 @@
       "email": "kpc@pukekohehigh.school.nz",
       "classes": [
         "9TDET",
-        "1TFNT",
+        "9TTEC",
         "1TEGR",
         "2TEGR",
         "3TEGR"
@@ -43,7 +52,9 @@
       "classes": [
         "1TBLD",
         "2TBLD",
-        "1TFNT"
+        "2BLDT",
+        "9TTEC",
+        "10TTEC"
       ]
     },
     {
@@ -51,7 +62,7 @@
       "name": "Mrs Mous",
       "email": "msl@pukekohehigh.school.nz",
       "classes": [
-        "1TFNT",
+        "9TTEC",
         "10TTEC"
       ]
     },
@@ -60,8 +71,8 @@
       "name": "Mrs Coull",
       "email": "clc@pukekohehigh.school.nz",
       "classes": [
-        "1TFNT",
-        "9TTEC"
+        "9TTEC",
+        "10TTEC"
       ]
     },
     {
@@ -130,14 +141,13 @@
   ],
   "classes": [
     {
-      "code": "1TFNT",
-      "name": "Year 11 Food and Nutrition",
+      "code": "9TTEC",
+      "name": "Year 9 Technology",
       "projects": [
-        "Outcome 1",
-        "Outcome 2",
-        "Outcome 3",
-        "Outcome 4",
-        "Outcome 5"
+        "Electric Circuit",
+        "Photo Frame",
+        "Folding Stool",
+        "Matariki"
       ]
     },
     {
@@ -263,6 +273,39 @@
       ]
     },
     {
+      "code": "1TFNT",
+      "name": "Year 11 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "2TFNT",
+      "name": "Year 12 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
+      "code": "3TFNT",
+      "name": "Year 13 Food and Nutrition",
+      "projects": [
+        "Outcome 1",
+        "Outcome 2",
+        "Outcome 3",
+        "Outcome 4",
+        "Outcome 5"
+      ]
+    },
+    {
       "code": "1TCAT",
       "name": "Level 1 Catering",
       "projects": [
@@ -298,28 +341,6 @@
     {
       "code": "HOSPTR",
       "name": "Hospitality / Trades",
-      "projects": [
-        "Outcome 1",
-        "Outcome 2",
-        "Outcome 3",
-        "Outcome 4",
-        "Outcome 5"
-      ]
-    },
-    {
-      "code": "2TFNT",
-      "name": "Year 12 Food and Nutrition",
-      "projects": [
-        "Outcome 1",
-        "Outcome 2",
-        "Outcome 3",
-        "Outcome 4",
-        "Outcome 5"
-      ]
-    },
-    {
-      "code": "3TFNT",
-      "name": "Year 13 Food and Nutrition",
       "projects": [
         "Outcome 1",
         "Outcome 2",
