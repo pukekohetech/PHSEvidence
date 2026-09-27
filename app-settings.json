@@ -19,8 +19,8 @@
     "destinationLabel": "the teacher evidence inbox"
   },
   "image": {
-    "maxDimension": 2000,
-    "jpegQuality": 0.88,
+    "maxDimension": 2400,
+    "jpegQuality": 0.78,
     "includeLogo": true,
     "includeDateTime": true,
     "includeStudentName": true,
