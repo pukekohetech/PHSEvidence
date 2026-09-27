@@ -7,6 +7,7 @@
   const DB_VERSION = 1;
   const STORE = 'outbox';
   let flushing = false;
+  let flushAgain = false;
 
   const isStandalone = () =>
     window.matchMedia?.('(display-mode: standalone)').matches ||
@@ -341,8 +342,14 @@
   }
 
   async function flushOutbox({ announce = true } = {}) {
-    if (flushing || !navigator.onLine) return;
+    if (!navigator.onLine) return;
+    if (flushing) {
+      flushAgain = true;
+      return;
+    }
+
     flushing = true;
+    flushAgain = false;
     let sent = 0;
     try {
       const records = await getAllRecords();
@@ -361,6 +368,10 @@
       await updateBackupStatus();
       if (announce && sent > 0 && typeof showToast === 'function') {
         showToast(`${sent} queued photo${sent === 1 ? '' : 's'} backed up.`);
+      }
+      if (flushAgain && navigator.onLine) {
+        flushAgain = false;
+        setTimeout(() => flushOutbox({ announce: false }), 0);
       }
     }
   }
@@ -539,7 +550,7 @@
     const automatic = options.automatic === true;
     if (!lastBlob) return showToast('Nothing to send.', false);
 
-    // Freeze the user's routing choices with this photo before sending or queueing.
+    // Freeze the routing with this photo before the local outbox takes ownership.
     snapshotRoutingToLastMeta();
 
     const endpoint = getConfiguredMailEndpoint();
@@ -552,64 +563,38 @@
     const sendKey = lastObjectUrl || `${lastMeta?.createdAt || ''}:${lastMeta?.filename || ''}`;
     if (automatic && sendKey && sendKey === lastDirectSendKey) return;
 
-    if (!navigator.onLine) {
-      try {
-        await queueCurrentEvidence();
-        lastDirectSendKey = sendKey;
-        showSendCurtain('success', 'Saved safely', 'Will back up automatically when internet returns');
-        setTimeout(returnToLiveCamera, 950);
-      } catch (err) {
-        console.error('Could not save evidence offline', err);
-        showSendCurtain('error', 'Could not save', 'Keep this photo open and try again');
-      }
-      return;
-    }
-
     const originalText = emailBtn?.textContent || 'Send';
     if (emailBtn) {
       emailBtn.disabled = true;
-      emailBtn.textContent = automatic ? 'Backing up...' : 'Sending...';
+      emailBtn.textContent = 'Saving...';
     }
-    if (emailStatusEl) emailStatusEl.textContent = 'Backing up the stamped photo directly to the teacher...';
+    if (emailStatusEl) emailStatusEl.textContent = 'Saving the stamped photo safely on this device...';
 
     try {
-      const sendResult = await sendViaConfiguredGateway();
-      if (sendResult?.submitted) {
-        lastDirectSendKey = sendKey;
-        if (sendResult.confirmed) {
-          const gateway = sendResult.gatewayStatus || {};
-          const driveFailed = gateway.driveExpected === true && gateway.driveSaved === false;
-          if (driveFailed) {
-            if (emailStatusEl) emailStatusEl.textContent = `✓ Evidence sent. Google Drive backup failed${gateway.driveError ? `: ${gateway.driveError}` : '.'}`;
-            showSendCurtain('success', 'Evidence sent', 'Google Drive copy needs attention');
-            if (typeof showToast === 'function') showToast('Evidence sent, but the Google Drive copy failed.', false, 5200);
-            setTimeout(showSaveCopyPrompt, 900);
-          } else {
-            if (emailStatusEl) emailStatusEl.textContent = gateway.driveSaved === true
-              ? `✓ Evidence sent and saved to Drive${gateway.drivePath ? ` • ${gateway.drivePath}` : ''}`
-              : '✓ Evidence sent and confirmed.';
-            showSendCurtain('success', 'Evidence sent', gateway.driveSaved === true ? 'Saved to Google Drive' : 'Backed up successfully');
-            setTimeout(showSaveCopyPrompt, 420);
-          }
-        } else {
-          if (emailStatusEl) emailStatusEl.textContent = 'Evidence submitted.';
-          showSendCurtain('success', 'Evidence submitted', 'Returning to camera');
-          setTimeout(showSaveCopyPrompt, 520);
-        }
+      // Queue-first is deliberate even while online. The classroom UI only waits
+      // for this durable local save, not for Gmail + Drive to finish server-side.
+      await queueCurrentEvidence();
+      lastDirectSendKey = sendKey;
+
+      if (navigator.onLine) {
+        if (emailStatusEl) emailStatusEl.textContent = '✓ Saved safely • sending in background.';
+        showSendCurtain('success', 'Saved safely', 'Sending in background');
+
+        // Do not await the network flush. The queued record owns the JPEG/base64
+        // payload and will remain available for retry if the send is interrupted.
+        flushOutbox({ announce: false }).catch((err) => {
+          console.warn('Background evidence backup is still waiting', err);
+        });
+      } else {
+        if (emailStatusEl) emailStatusEl.textContent = '✓ Saved safely • waiting for internet.';
+        showSendCurtain('success', 'Saved safely', 'Will send automatically when internet returns');
       }
+
+      setTimeout(showSaveCopyPrompt, 260);
     } catch (err) {
-      console.warn('Direct send failed; moving evidence to local outbox.', err);
-      try {
-        await queueCurrentEvidence();
-        lastDirectSendKey = sendKey;
-        if (emailStatusEl) emailStatusEl.textContent = 'Send interrupted; evidence saved locally for automatic retry.';
-        showSendCurtain('success', 'Saved for retry', 'Will back up automatically when connection is available');
-        setTimeout(returnToLiveCamera, 1100);
-      } catch (queueErr) {
-        console.error('Could not queue evidence after send failure', queueErr);
-        if (emailStatusEl) emailStatusEl.textContent = 'Send failed. Keep the photo on screen and try again.';
-        showSendCurtain('error', 'Send failed', 'The photo is still on this screen');
-      }
+      console.error('Could not save evidence to the local outbox', err);
+      if (emailStatusEl) emailStatusEl.textContent = 'Could not save the evidence locally. Keep this photo open and try again.';
+      showSendCurtain('error', 'Could not save', 'The photo is still on this screen');
     } finally {
       if (emailBtn) {
         emailBtn.textContent = originalText;
@@ -626,7 +611,7 @@
     if (!('serviceWorker' in navigator)) return;
     if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return;
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=9', { scope: './' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=10', { scope: './' });
       registration.update().catch(() => {});
     } catch (err) {
       console.warn('Service worker registration failed', err);
