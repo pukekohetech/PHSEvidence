@@ -2177,9 +2177,11 @@ function jsonpRequest(endpoint, params = {}, timeoutMs = 3500) {
 }
 
 async function waitForMailGatewayStatus(endpoint, submissionId) {
-  const waits = [300, 900];
+  // doPost writes its final sent/error status before returning, so check as soon as
+  // the POST completes. Keep one short fallback in case CacheService propagation lags.
+  const waits = [0, 250];
   for (const wait of waits) {
-    await new Promise((resolve) => setTimeout(resolve, wait));
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     let result = null;
     try {
       result = await jsonpRequest(endpoint, { action: 'status', id: submissionId }, 3000);
