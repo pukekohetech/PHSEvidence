@@ -23,7 +23,7 @@
       provider: 'apps-script',
       destinationLabel: 'the teacher evidence inbox'
     },
-    image: { maxDimension: 2000, jpegQuality: 0.88, includeLogo: true, includeDateTime: true, includeStudentName: true, includeTeacher: true, includeClass: true, includeProject: true },
+    image: { maxDimension: 1920, jpegQuality: 0.78, includeLogo: true, includeDateTime: true, includeStudentName: true, includeTeacher: true, includeClass: true, includeProject: true },
     features: { autoSendAfterStamp: true, allowUploadExistingPhoto: true, allowSaveCopy: true, allowInstallApp: true, rememberStudentName: true, showThemeButton: true },
     routing: { classFolderPattern: '{class}-{teacher}', studentFolderPattern: '{student}', filenamePattern: 'PHS_{student}_{project}_{timestamp}' },
     labels: { studentName: 'Student name', teacher: 'Teacher', class: 'Class', project: 'Project / task', takePhoto: 'Take Photo', send: 'Send', saveCopy: 'Save copy' }
@@ -42,6 +42,19 @@
 
   function getSchoolYear(date = new Date()) {
     return date.getFullYear();
+  }
+
+  function fitImageDimensions(width, height, maxDimension) {
+    let w = Math.max(1, Math.round(Number(width) || 1));
+    let h = Math.max(1, Math.round(Number(height) || 1));
+    const maxDim = Math.max(1, Math.round(Number(maxDimension) || Math.max(w, h)));
+    const longest = Math.max(w, h);
+    if (longest <= maxDim) return { width: w, height: h };
+    const scale = maxDim / longest;
+    return {
+      width: Math.max(1, Math.round(w * scale)),
+      height: Math.max(1, Math.round(h * scale))
+    };
   }
 
   function assertNonEmpty(value, label) {
@@ -398,6 +411,7 @@
   return {
     slugifyId,
     getSchoolYear,
+    fitImageDimensions,
     validateTeachingData,
     validateAppSettings,
     normaliseAppSettings,

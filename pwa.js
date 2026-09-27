@@ -626,7 +626,7 @@
     if (!('serviceWorker' in navigator)) return;
     if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return;
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=8', { scope: './' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=9', { scope: './' });
       registration.update().catch(() => {});
     } catch (err) {
       console.warn('Service worker registration failed', err);
