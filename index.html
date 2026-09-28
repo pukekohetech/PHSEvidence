@@ -1768,6 +1768,20 @@ function handleStampedBlob(blob) {
     createdAt
   };
 
+  // Snapshot the complete server-routing metadata at capture time. This keeps the
+  // Drive path stable even if a selection changes before the image finishes sending.
+  const routingMeta = window.PHSConfigLoader.buildRoutingMeta({
+    teacherCode: filenameMeta.teacherCode,
+    classCode: filenameMeta.classCode,
+    studentName: filenameMeta.studentName,
+    projectLabel: filenameMeta.projectLabel,
+    createdAt,
+    teacherId: teacherSelect.value,
+    subjectId: subjectSelect.value,
+    projectId: selectedProject?.id || projectSelect.value,
+    subjectLabel: selectedClass?.label || selectedClass?.name || selectedClass?.code || "",
+  }, window.PHS_CONFIG.settings.routing);
+
   lastMeta = {
     filename: window.PHSConfigLoader.buildEvidenceFilename(
       filenameMeta,
@@ -1781,7 +1795,9 @@ function handleStampedBlob(blob) {
     teacherId: teacherSelect.value,
     subjectId: subjectSelect.value,
     projectId: selectedProject?.id || projectSelect.value,
+    subjectLabel: routingMeta.subjectLabel,
     projectLabel: selectedProject?.label || "Evidence",
+    routing: routingMeta,
     teacherEmail: (teacherEmailInput.value || "").trim(),
     context: buildEvidenceContext(),
   };
@@ -2237,7 +2253,16 @@ async function sendViaConfiguredGateway() {
     body: getEmailBody(),
     student: lastMeta.student,
     teacher: lastMeta.teacher,
-    teacherId: lastMeta.teacherId || teacherSelect.value,
+    teacherId: lastMeta.routing?.teacherId || lastMeta.teacherId || teacherSelect.value,
+    subjectId: lastMeta.routing?.subjectId || lastMeta.subjectId || subjectSelect.value,
+    projectId: lastMeta.routing?.projectId || lastMeta.projectId || projectSelect.value,
+    routingVersion: lastMeta.routing?.routingVersion,
+    schoolYear: lastMeta.routing?.schoolYear,
+    classKey: lastMeta.routing?.classKey,
+    studentFolder: lastMeta.routing?.studentFolder,
+    subjectLabel: lastMeta.routing?.subjectLabel || lastMeta.subjectLabel || "",
+    projectLabel: lastMeta.routing?.projectLabel || lastMeta.projectLabel || "",
+    routing: lastMeta.routing || undefined,
     teacherEmail: lastMeta.teacherEmail,
     context: lastMeta.context,
     createdAt: lastMeta.createdAt,
