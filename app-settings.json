@@ -14,7 +14,7 @@
     "accentColour": "#f2b632"
   },
   "gateway": {
-    "url": "https://script.google.com/macros/s/AKfycbyIGKMYC74b2kG42gYs4QlZvLdl1IbhZuvGn1pputswfHvGPupHOkKj0XISJrnY3sf4uA/exec",
+    "url": "https://script.google.com/macros/s/AKfycbwjRBiTK_XvAdxxMtsFREQwDeVofZ3S6eboM8wzFEN8Q77ozpnlet2JXUtatjP3Dhvz/exec",
     "provider": "apps-script",
     "destinationLabel": "the teacher evidence inbox"
   },
