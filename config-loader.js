@@ -19,7 +19,7 @@
     school: { name: 'Pukekohe High School', shortName: 'PHS', faculty: 'Technology', appName: 'PHS Evidence Camera' },
     branding: { logo: 'phs-shield.png', themeColour: '#6e1818', backgroundColour: '#090a0c', accentColour: '#f2b632' },
     gateway: {
-      url: 'https://script.google.com/macros/s/AKfycbwjRBiTK_XvAdxxMtsFREQwDeVofZ3S6eboM8wzFEN8Q77ozpnlet2JXUtatjP3Dhvz/exec',
+      url: 'https://script.google.com/macros/s/AKfycbwL4qnlhwIJtBuyhGeJkRB-5Ux3rlMXwuZoRtq_Y4ngC5VwVR_-dwu4Fg4xyAqtyk_76Q/exec',
       provider: 'apps-script',
       destinationLabel: 'the teacher evidence inbox'
     },
